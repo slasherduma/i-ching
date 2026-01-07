@@ -27,27 +27,27 @@ struct InterpretationView: View {
                     .font(.system(size: 12, weight: .ultraLight))
                     .foregroundColor(.gray)
                     .padding(.bottom, 20)
-                
-                Button(action: {
-                    showResult = true
-                }) {
-                    Text("Продолжить")
-                        .font(.system(size: 16, weight: .light))
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 30)
-                        .padding(.vertical, 12)
-                        .overlay(
-                            Rectangle()
-                                .stroke(Color.black, lineWidth: 1)
-                        )
-                }
-                .padding(.bottom, 40)
             }
+        }
+        .safeAreaInset(edge: .bottom) {
+            Button(action: {
+                showResult = true
+            }) {
+                Text("Продолжить")
+                    .font(.system(size: 16, weight: .light))
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 30)
+                    .padding(.vertical, 12)
+                    .overlay(
+                        Rectangle()
+                            .stroke(Color.black, lineWidth: 1)
+                    )
+            }
+            .padding(.bottom, 60)
         }
         .fullScreenCover(isPresented: $showResult) {
             ResultView(hexagram: hexagram, lines: lines, question: question)
         }
     }
 }
-
 

@@ -53,6 +53,7 @@ struct CoinsView: View {
                                     .stroke(Color.black, lineWidth: 1)
                             )
                     }
+                    .padding(.bottom, 60)
                 }
                 
                 Spacer()

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - Design Constants для переноса из макета
 // Замените значения ниже на значения из вашего макета (Figma, Sketch и т.д.)
@@ -82,6 +83,27 @@ struct DesignConstants {
         static let focusDelay: Double = 0.5
     }
     
+    // MARK: - Layout (Глобальные константы для layout)
+    struct Layout {
+        // Небольшой отступ от safe area для CTA (чтобы контент не перекрывал home indicator)
+        static let ctaSafeBottomPadding: CGFloat = 16
+        
+        // "Подъем" CTA над safe area - большое пустое пространство под кнопкой (соответствует buttonToBottom)
+        static let ctaLiftHigh: CGFloat = 80
+        
+        // "Подъем" для sticky CTA - небольшой отступ от низа для визуального разделения
+        static let ctaLiftSticky: CGFloat = 44
+        
+        // Отступ для sticky CTA overlay, чтобы выровнять с flow CTA baseline
+        static let ctaStickyOffset: CGFloat = 56
+        
+        // Горизонтальный padding для двух кнопок (double layout)
+        static let ctaHorizontalPaddingDouble: CGFloat = 48
+        
+        // UIKit цвет для текста CTA кнопок (красный #FF3636)
+        static let ctaTextUIColor: UIColor = UIColor(red: 255/255, green: 54/255, blue: 54/255, alpha: 1)
+    }
+    
     // MARK: - Start Screen Design Constants
     struct StartScreen {
         // MARK: - Colors
@@ -89,14 +111,15 @@ struct DesignConstants {
             static let backgroundBeige = Color(hex: "EFE7D4")
             static let titleRed = Color(hex: "F44336") // Новый красный
             static let buttonBlue = Color(hex: "286196") // Новый синий
+            static let buttonTextColor = Color(hex: "FF3636") // Красный для кнопок
         }
         
         // MARK: - Typography
         struct Typography {
             // Иероглифы 乾 и 坤
             static let chineseCharactersSize: CGFloat = 190
-            static let chineseCharactersFontName = "Zen Old Mincho"
-            static let chineseCharactersWeight: Font.Weight = .bold
+            static let chineseCharactersFontName = "Rampart One"
+            static let chineseCharactersWeight: Font.Weight = .regular
             
             // Название "И-ЦЗИН"
             static let mainTitleSize: CGFloat = 133
@@ -109,9 +132,9 @@ struct DesignConstants {
             static let subtitleWeight: Font.Weight = .regular
             
             // Кнопки
-            static let buttonTextSize: CGFloat = 22
-            static let buttonFontName = "Druk Wide Cyr"
-            static let buttonWeight: Font.Weight = .medium
+            static let buttonTextSize: CGFloat = 36
+            static let buttonFontName = "Roboto Mono Light"
+            static let buttonWeight: Font.Weight = .light
         }
         
         // MARK: - Spacing (точные значения из Figma 660×1434)
@@ -157,6 +180,7 @@ struct DesignConstants {
         struct Colors {
             static let backgroundBeige = Color(hex: "EFE7D4")
             static let textBlue = Color(hex: "286196")
+            static let buttonTextColor = Color(hex: "FF3636") // Красный для кнопок
         }
         
         // MARK: - Typography
@@ -174,8 +198,8 @@ struct DesignConstants {
             static let placeholderFontName = "Helvetica Neue Light"
             
             // Кнопки
-            static let buttonSize: CGFloat = 22
-            static let buttonFontName = "Druk Wide Cyr Medium"
+            static let buttonSize: CGFloat = 36
+            static let buttonFontName = "Roboto Mono Light"
         }
         
         // MARK: - Spacing (точные значения из Figma 660×1434)
@@ -208,8 +232,8 @@ struct DesignConstants {
             static let lineColor = Color(hex: "286196")
             static let circleBorderColor = Color(hex: "286196")
             static let chineseCharacterColor = Color(hex: "286196")
-            static let buttonTextColor = Color(hex: "286196")
-            static let counterTextColor = Color(hex: "286196")
+            static let buttonTextColor = Color(hex: "FF3636")
+            static let counterTextColor = Color(hex: "FF3636")
         }
         
         // MARK: - Typography
@@ -220,25 +244,29 @@ struct DesignConstants {
             static let chineseCharacterWeight: Font.Weight = .light
             
             // Кнопка "БРОСИТЬ МОНЕТЫ"
-            static let buttonTextSize: CGFloat = 22
-            static let buttonFontName = "Druk Wide Cyr Medium"
-            static let buttonWeight: Font.Weight = .medium
+            static let buttonTextSize: CGFloat = 36
+            static let buttonFontName = "Roboto Mono Light"
+            static let buttonWeight: Font.Weight = .light
             
             // Счетчик "1/6"
             static let counterTextSize: CGFloat = 22
-            static let counterFontName = "RobotoMono-VariableFont_wght" // Временно, уточнить
-            static let counterWeight: Font.Weight = .thin
+            static let counterFontName = "Roboto Mono Light"
+            static let counterWeight: Font.Weight = .light
+            static let counterLineHeight: CGFloat = 29
         }
         
         // MARK: - Spacing (точные значения из Figma 660×1434)
         struct Spacing {
             // Вертикальные отступы
-            static let topToHexagram: CGFloat = 259 // От верха до первой линии гексаграммы
-            static let hexagramToCircles: CGFloat = 157 // От гексаграммы до кругов
+            static let topToMenu: CGFloat = 133 // От верха экрана до строки меню
+            static let topToHexagram: CGFloat = 360 // От верха экрана (над черным островком) до первой линии гексаграммы
+            static let hexagramToCircles: CGFloat = 160 // От низа гексаграммы до монет
             static let circlesToCounter: CGFloat = 60 // От кругов до счетчика
-            static let buttonToBottom: CGFloat = 164 // От кнопки до нижнего края
+            static let counterToButton: CGFloat = 400 // От счетчика до кнопки "БРОСИТЬ МОНЕТЫ"
+            static let buttonToBottom: CGFloat = 150 // От кнопки до нижнего края
             
             // Горизонтальные отступы
+            static let menuHorizontalPadding: CGFloat = 48 // Отступ слева/справа для кнопок меню
             static let betweenCircles: CGFloat = 60 // Расстояние между кругами
             static let buttonHorizontalPadding: CGFloat = 175 // Горизонтальный padding кнопки
             static let counterHorizontalPadding: CGFloat = 310 // Горизонтальный padding счетчика
@@ -254,14 +282,61 @@ struct DesignConstants {
             static let circleBorderWidth: CGFloat = 3
             
             // Линии гексаграммы
-            static let lineLength: CGFloat = 204 // Длина одной линии
+            static let lineLength: CGFloat = 160 // Ширина линии
             static let lineSegmentLength: CGFloat = 68 // Для прерывистой линии
-            static let lineThickness: CGFloat = 13 // Толщина линии
-            static let lineSpacing: CGFloat = 18.4 // Расстояние между линиями (рассчитано: (170 - 6*13) / 5 = 18.4)
-            static let hexagramTotalHeight: CGFloat = 170 // Общая высота гексаграммы (6 линий + промежутки)
+            static let lineThickness: CGFloat = 10 // Толщина линии (палки)
+            static let lineSpacing: CGFloat = 8 // Расстояние между линиями (100px общая высота - 60px линии = 40px / 5 промежутков = 8px)
+            static let hexagramTotalHeight: CGFloat = 100 // Общая высота гексаграммы
             
-            // Монеты (предположение: ~85% от диаметра круга)
-            static let coinDiameter: CGFloat = 125
+            // Монеты
+            static let coinDiameter: CGFloat = 150
+            
+            // OPTIONAL FIX: Fixed button height to guarantee identical frames across screens
+            static let buttonHeight: CGFloat = 52
+        }
+        
+        // MARK: - Hand Animation
+        struct HandAnimation {
+            // Базовая линия снизу (общая для всех кадров)
+            static let bottomBaseLine: CGFloat = 222 // Отступ от нижнего края экрана
+            
+            // Кадр 1 (hand1)
+            struct Frame1 {
+                static let x: CGFloat = 197 // От левого края
+                static let y: CGFloat = 936 // От верхнего края
+                static let width: CGFloat = 266
+                static let height: CGFloat = 276
+            }
+            
+            // Кадр 2 (hand2)
+            struct Frame2 {
+                static let x: CGFloat = 148 // От левого края
+                static let y: CGFloat = 932 // От верхнего края
+                static let width: CGFloat = 244
+                static let height: CGFloat = 280
+            }
+            
+            // Кадр 3 (hand3)
+            struct Frame3 {
+                static let x: CGFloat = 167 // От левого края
+                static let y: CGFloat = 884 // От верхнего края (рассчитано от базовой линии)
+                static let width: CGFloat = 327
+                static let height: CGFloat = 328
+            }
+            
+            // Кадр 4 (hand4) - стоп-кадр
+            struct Frame4 {
+                static let x: CGFloat = 167 // От левого края
+                // Y рассчитывается от базовой линии снизу: baseScreenHeight (1434) - bottomBaseLine (222) - height (296) = 916
+                static let y: CGFloat = 916 // От верхнего края (рассчитано от базовой линии снизу)
+                static let width: CGFloat = 287
+                static let height: CGFloat = 296
+            }
+            
+            // Длительности анимации
+            static let loopAnimationDuration: Double = 0.5 // Длительность перехода между hand1 и hand2
+            static let throwAnimationDuration: Double = 0.3 // Длительность перехода к hand3
+            static let finalFrameDuration: Double = 0.2 // Длительность перехода к hand4
         }
         
         // MARK: - Base Screen Size (для масштабирования)
@@ -275,17 +350,18 @@ struct DesignConstants {
         struct Colors {
             static let backgroundBeige = Color(hex: "EFE7D4")
             static let textBlue = Color(hex: "286196")
+            static let buttonTextColor = Color(hex: "FF3636") // Красный для кнопок
         }
         
         // MARK: - Typography
         struct Typography {
             // Заголовок "Текущее состояние"
             static let currentStateTitleSize: CGFloat = 22
-            static let currentStateTitleFontName = "Roboto Mono"
+            static let currentStateTitleFontName = "Roboto Mono Thin"
             
             // "Гексограмма X: ..."
             static let hexagramLabelSize: CGFloat = 22
-            static let hexagramLabelFontName = "Roboto Mono"
+            static let hexagramLabelFontName = "Roboto Mono Thin"
             
             // Текст интерпретации
             static let interpretationSize: CGFloat = 22
@@ -293,11 +369,11 @@ struct DesignConstants {
             
             // Вопрос "Куда всё движется если ничего не менять"
             static let questionSize: CGFloat = 22
-            static let questionFontName = "Roboto Mono"
+            static let questionFontName = "Roboto Mono Thin"
             
             // Кнопка "ПОДРОБНЕЕ"
-            static let buttonSize: CGFloat = 22
-            static let buttonFontName = "Druk Wide Cyr"
+            static let buttonSize: CGFloat = 36
+            static let buttonFontName = "Roboto Mono Light"
         }
         
         // MARK: - Spacing (точные значения из Figma 660×1434)
@@ -313,17 +389,17 @@ struct DesignConstants {
             static let secondLabelToButton: CGFloat = 120 // От "Гексограмма 14: ..." до кнопки "ПОДРОБНЕЕ"
             
             // Позиция первой гексограммы (как на CoinsScreen)
-            static let topToFirstHexagram: CGFloat = 259 // От верха до первой линии гексограммы
+            static let topToFirstHexagram: CGFloat = 360 // От верха до первой линии гексограммы (совпадает с CoinsScreen)
         }
         
         // MARK: - Sizes (используем те же размеры, что и в CoinsScreen)
         struct Sizes {
             // Линии гексаграммы
-            static let lineLength: CGFloat = 204 // Длина одной линии
+            static let lineLength: CGFloat = 160 // Ширина линии
             static let lineSegmentLength: CGFloat = 68 // Для прерывистой линии
-            static let lineThickness: CGFloat = 13 // Толщина линии
-            static let lineSpacing: CGFloat = 18.4 // Расстояние между линиями
-            static let hexagramTotalHeight: CGFloat = 170 // Общая высота гексаграммы (6 линий + промежутки)
+            static let lineThickness: CGFloat = 10 // Толщина линии (палки)
+            static let lineSpacing: CGFloat = 8 // Расстояние между линиями (100px общая высота - 60px линии = 40px / 5 промежутков = 8px)
+            static let hexagramTotalHeight: CGFloat = 100 // Общая высота гексаграммы
         }
         
         // MARK: - Base Screen Size (для масштабирования)
@@ -337,6 +413,7 @@ struct DesignConstants {
         struct Colors {
             static let backgroundBeige = Color(hex: "EFE7D4")
             static let textBlue = Color(hex: "286196")
+            static let buttonTextColor = Color(hex: "FF3636") // Красный для кнопок
         }
         
         // MARK: - Typography
@@ -354,8 +431,8 @@ struct DesignConstants {
             static let bodyFontName = "Helvetica Neue Light"
             
             // Continue button
-            static let buttonSize: CGFloat = 22
-            static let buttonFontName = "Druk Wide Cyr Medium"
+            static let buttonSize: CGFloat = 36
+            static let buttonFontName = "Roboto Mono Light"
         }
         
         // MARK: - Spacing (точные значения из Figma 660×1434)
@@ -415,13 +492,352 @@ struct DesignConstants {
             static let betweenParagraphs: CGFloat = 20 // Между параграфами внутри секции
             
             // Специальные отступы для блоков с буллитами
-            static let bulletBlockLeftPadding: CGFloat = 81 // Отступ слева для блоков с буллитами
+            static let bulletBlockLeftPadding: CGFloat = 80 // Отступ слева для блоков с буллитами
             static let bulletBlockRightPadding: CGFloat = 48 // Отступ справа для блоков с буллитами
         }
         
         // MARK: - Base Screen Size (для масштабирования)
         static let baseScreenWidth: CGFloat = 660 // Размер фрейма в Figma (660x1434)
         static let baseScreenHeight: CGFloat = 1434 // Высота фрейма в Figma
+    }
+    
+    // MARK: - Advanced Interpretation Screen Design Constants
+    struct AdvancedInterpretationScreen {
+        // MARK: - Colors
+        struct Colors {
+            static let textBlue = Color(hex: "286196")
+            static let backgroundBeige = Color(hex: "EFE7D4")
+        }
+        
+        // MARK: - Typography
+        struct Typography {
+            // Используем существующие размеры из InterpretationScreen
+            static let bodySize: CGFloat = 22
+            static let labelSize: CGFloat = 22
+        }
+        
+        // MARK: - Spacing (точные значения из Figma 660×1434)
+        struct Spacing {
+            // Кнопка "Скрыть подробности"
+            static let topToHideButton: CGFloat = 40
+            static let hideButtonBottom: CGFloat = 120
+            
+            // Разделитель и заголовки секций
+            static let dividerToSectionHeader: CGFloat = 40
+            static let sectionHeaderBottom: CGFloat = 20
+            
+            // Блок "Текст по меняющимся линиям"
+            static let lineVisualToLabel: CGFloat = 36
+            static let lineLabelToText: CGFloat = 20
+            static let lineItemTopFirst: CGFloat = 20 // Отступ сверху для первого элемента (Линия 4)
+            static let lineItemTopOther: CGFloat = 40 // Отступ сверху для остальных элементов (Линия 5, 6)
+            static let lineItemBottom: CGFloat = 0
+            static let changingLinesBlockBottom: CGFloat = 0
+            
+            // Между блоками
+            static let betweenBlocks: CGFloat = 60
+            
+            // Блок "Объяснение триграмм"
+            static let trigramsHeaderBottom: CGFloat = 20
+            static let trigramHeaderToSymbol: CGFloat = 40 // Отступ от заголовка "Верхняя триграмма" до первой линии
+            static let trigramSymbolToName: CGFloat = 20
+            static let trigramNameToDescription: CGFloat = 20
+            static let betweenTrigrams: CGFloat = 40 // Отступ между описанием верхней триграммы и верхней линией нижней триграммы
+            static let trigramsBlockBottom: CGFloat = 40
+            static let trigramsToReflection: CGFloat = 0
+            
+            // Блок "Для размышления"
+            static let reflectionHeaderBottom: CGFloat = 20
+            static let reflectionItemSpacing: CGFloat = 20
+            static let reflectionBlockBottom: CGFloat = 160 // Отступ снизу блока "Для размышления" до кнопки "Продолжить"
+            
+            // Горизонтальные отступы
+            static let horizontalPadding: CGFloat = 48
+            static let bulletBlockLeftPadding: CGFloat = 80 // Отступ слева для буллитов и трактовок триграмм
+            static let bulletBlockRightPadding: CGFloat = 48 // Отступ справа для буллитов и трактовок триграмм
+            static let lineLeftOffset: CGFloat = 32 // Дополнительный отступ слева для линий (80 - 48 = 32)
+        }
+        
+        // MARK: - Sizes
+        struct Sizes {
+            static let dividerHeight: CGFloat = 1
+            static let chevronSize: CGFloat = 16
+        }
+        
+        // MARK: - Base Screen Size (для масштабирования)
+        static let baseScreenWidth: CGFloat = 660 // Размер фрейма в Figma (660x1434)
+        static let baseScreenHeight: CGFloat = 1434 // Высота фрейма в Figma
+    }
+    
+    // MARK: - Daily Sign Screen Design Constants
+    struct DailySignScreen {
+        // MARK: - Colors
+        struct Colors {
+            static let backgroundBeige = Color(hex: "EFE7D4")
+            static let textBlue = Color(hex: "286196")
+            static let buttonTextColor = Color(hex: "FF3636") // Красный для кнопок
+        }
+        
+        // MARK: - Typography
+        struct Typography {
+            // Дата (например, "29 декабря 2025 г.")
+            static let dateSize: CGFloat = 22
+            static let dateFontName = "Roboto Mono Thin"
+            
+            // Время (например, "00:23")
+            static let timeSize: CGFloat = 22
+            static let timeFontName = "Roboto Mono Thin"
+            
+            // Название гексаграммы (например, "14 : ВЕЛИКОЕ ОБЛАДАНИЕ")
+            static let hexagramNameSize: CGFloat = 22
+            static let hexagramNameFontName = "Roboto Mono Thin"
+            
+            // Короткий абзац (центрированный)
+            static let shortParagraphSize: CGFloat = 22
+            static let shortParagraphFontName = "Roboto Mono Thin"
+            
+            // Основной текст
+            static let bodyTextSize: CGFloat = 22
+            static let bodyTextFontName = "Helvetica Neue Thin"
+            
+            // Кнопки
+            static let buttonSize: CGFloat = 36
+            static let buttonFontName = "Roboto Mono Light"
+        }
+        
+        // MARK: - Spacing (точные значения из Figma 660×1434)
+        struct Spacing {
+            // От верха экрана до даты
+            static let topToDate: CGFloat = 140
+            
+            // От блока даты/времени до верха гексаграммы
+            static let dateTimeBlockToHexagram: CGFloat = 345
+            
+            // От низа гексаграммы до названия "ВЕЛИКОЕ ОБЛАДАНИЕ"
+            static let hexagramBottomToName: CGFloat = 80
+            
+            // От названия до короткого абзаца
+            static let nameToShortParagraph: CGFloat = 40
+            
+            // От короткого абзаца до основного текста
+            static let shortParagraphToBody: CGFloat = 40
+            
+            // От основного текста до кнопок
+            static let bodyToButtons: CGFloat = 140
+            
+            // Горизонтальный отступ для основного текста
+            static let bodyTextHorizontalPadding: CGFloat = 48
+            
+            // Отступ между параграфами основного текста (если несколько)
+            static let bodyParagraphSpacing: CGFloat = 20
+            
+            // Расстояние между датой и временем (одна строка под другой, без дополнительного отступа)
+            static let dateToTime: CGFloat = 0
+            
+            // Горизонтальные отступы для кнопок
+            static let buttonHorizontalPadding: CGFloat = 80
+            
+            // Расстояние между кнопками
+            static let buttonSpacing: CGFloat = 48
+            
+            // Отступ снизу до кнопок
+            static let buttonsToBottom: CGFloat = 158
+        }
+        
+        // MARK: - Sizes (используем те же размеры, что и в CoinsScreen)
+        struct Sizes {
+            // Линии гексаграммы (такие же как в CoinsScreen)
+            static let lineLength: CGFloat = 160 // Ширина линии
+            static let lineSegmentLength: CGFloat = 68 // Для прерывистой линии
+            static let lineThickness: CGFloat = 10 // Толщина линии (палки)
+            static let lineSpacing: CGFloat = 8 // Расстояние между линиями (100px общая высота - 60px линии = 40px / 5 промежутков = 8px)
+            static let hexagramTotalHeight: CGFloat = 100 // Общая высота гексаграммы
+        }
+        
+        // MARK: - Base Screen Size (для масштабирования)
+        static let baseScreenWidth: CGFloat = 660 // Размер фрейма в Figma (660x1434)
+        static let baseScreenHeight: CGFloat = 1434 // Высота фрейма в Figma
+    }
+    
+    // MARK: - History Screen Design Constants
+    struct HistoryScreen {
+        // MARK: - Colors
+        struct Colors {
+            static let backgroundBeige = Color(hex: "EFE7D4")
+            static let textBlue = Color(hex: "286196")
+        }
+        
+        // MARK: - Typography
+        struct Typography {
+            // Заголовок "Мой дневник"
+            static let titleSize: CGFloat = 22
+            static let titleFontName = "Helvetica Neue Light"
+            
+            // Кнопка "Назад"
+            static let backButtonSize: CGFloat = 22
+            static let backButtonFontName = "Helvetica Neue Light"
+            
+            // Вопрос пользователя
+            static let questionSize: CGFloat = 22
+            static let questionFontName = "Helvetica Neue Light"
+            
+            // Название/ключевая фраза в списке
+            static let readingTitleSize: CGFloat = 22
+            static let readingTitleFontName = "Helvetica Neue Light"
+            
+            // Дата
+            static let dateSize: CGFloat = 22
+            static let dateFontName = "Roboto Mono Thin"
+            
+            // Пустое состояние
+            static let emptyStateSize: CGFloat = 22
+            static let emptyStateFontName = "Helvetica Neue Light"
+        }
+        
+        // MARK: - Spacing
+        struct Spacing {
+            // Горизонтальные отступы
+            static let horizontalPadding: CGFloat = 48
+            
+            // Заголовок
+            static let headerTop: CGFloat = 40
+            static let headerBottom: CGFloat = 40
+            static let headerHorizontalPadding: CGFloat = 48
+            
+            // Элементы списка
+            static let listTop: CGFloat = 20
+            static let listBottom: CGFloat = 40
+            static let itemSpacing: CGFloat = 40
+            static let itemVerticalPadding: CGFloat = 20
+            
+            // Пустое состояние
+            static let emptyStateSpacing: CGFloat = 0
+        }
+        
+        // MARK: - Base Screen Size
+        static let baseScreenWidth: CGFloat = 660
+        static let baseScreenHeight: CGFloat = 1434
+    }
+    
+    // MARK: - Tutorial Screen Design Constants
+    struct TutorialScreen {
+        // MARK: - Colors
+        struct Colors {
+            static let backgroundBeige = Color(hex: "EFE7D4")
+            static let textBlue = Color(hex: "286196")
+            static let buttonTextColor = Color(hex: "FF3636") // Красный для кнопок
+        }
+        
+        // MARK: - Typography
+        struct Typography {
+            // Заголовок страницы
+            static let titleSize: CGFloat = 22
+            static let titleFontName = "Roboto Mono Thin"
+            
+            // Основной текст
+            static let bodySize: CGFloat = 22
+            static let bodyFontName = "Helvetica Neue Light"
+            
+            // Кнопки навигации
+            static let buttonSize: CGFloat = 36
+            static let buttonFontName = "Roboto Mono Light"
+            
+            // Кнопка "Начать"
+            static let startButtonSize: CGFloat = 36
+            static let startButtonFontName = "Roboto Mono Light"
+        }
+        
+        // MARK: - Spacing (точные значения из Figma 660×1434)
+        struct Spacing {
+            // Вертикальные отступы
+            static let topToVisual: CGFloat = 200 // От верха до визуализации
+            static let visualToTitle: CGFloat = 60 // От визуализации до заголовка
+            static let titleToContent: CGFloat = 20 // От заголовка до текста
+            static let contentToNavigation: CGFloat = 80 // От текста до навигации
+            
+            // Горизонтальные отступы
+            static let horizontalPadding: CGFloat = 60 // Для заголовка и текста
+            static let navigationHorizontalPadding: CGFloat = 60 // Для навигации
+            
+            // Навигация
+            static let navigationBottom: CGFloat = 60 // От навигации до низа
+            static let navigationSpacing: CGFloat = 30 // Между элементами навигации
+            static let indicatorSpacing: CGFloat = 8 // Между индикаторами страниц
+            
+            // Визуализация
+            static let visualHeight: CGFloat = 200 // Высота визуализации
+        }
+        
+        // MARK: - Base Screen Size (для масштабирования)
+        static let baseScreenWidth: CGFloat = 660 // Размер фрейма в Figma (660x1434)
+        static let baseScreenHeight: CGFloat = 1434 // Высота фрейма в Figma
+    }
+    
+    // MARK: - Reading Detail Screen Design Constants
+    struct ReadingDetailScreen {
+        // MARK: - Colors
+        struct Colors {
+            static let backgroundBeige = Color(hex: "EFE7D4")
+            static let textBlue = Color(hex: "286196")
+        }
+        
+        // MARK: - Typography
+        struct Typography {
+            // Заголовок "Расклад"
+            static let titleSize: CGFloat = 22
+            static let titleFontName = "Helvetica Neue Light"
+            
+            // Кнопка "Назад"
+            static let backButtonSize: CGFloat = 22
+            static let backButtonFontName = "Helvetica Neue Light"
+            
+            // Заголовки секций (дата, вопрос, гексаграмма, интерпретация и т.д.)
+            static let sectionLabelSize: CGFloat = 22
+            static let sectionLabelFontName = "Roboto Mono Thin"
+            
+            // Основной текст (вопрос, интерпретация, заметки)
+            static let bodySize: CGFloat = 22
+            static let bodyFontName = "Helvetica Neue Light"
+            
+            // Поля ввода
+            static let inputSize: CGFloat = 22
+            static let inputFontName = "Helvetica Neue Light"
+            
+            // Кнопка удаления
+            static let deleteButtonSize: CGFloat = 22
+            static let deleteButtonFontName = "Helvetica Neue Light"
+        }
+        
+        // MARK: - Spacing
+        struct Spacing {
+            // Горизонтальные отступы
+            static let horizontalPadding: CGFloat = 48
+            
+            // Заголовок
+            static let headerTop: CGFloat = 40
+            static let headerBottom: CGFloat = 40
+            static let headerHorizontalPadding: CGFloat = 48
+            
+            // Контент
+            static let contentTop: CGFloat = 20
+            static let contentBottom: CGFloat = 40
+            static let sectionSpacing: CGFloat = 40
+            static let sectionLabelBottom: CGFloat = 20
+            static let paragraphSpacing: CGFloat = 20
+            
+            // Поля ввода
+            static let inputTop: CGFloat = 20
+            static let inputBottom: CGFloat = 40
+            static let inputInternalPadding: CGFloat = 12
+            
+            // Кнопка удаления
+            static let deleteButtonTop: CGFloat = 40
+            static let deleteButtonBottom: CGFloat = 40
+        }
+        
+        // MARK: - Base Screen Size
+        static let baseScreenWidth: CGFloat = 660
+        static let baseScreenHeight: CGFloat = 1434
     }
 }
 

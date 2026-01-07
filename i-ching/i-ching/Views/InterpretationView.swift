@@ -287,20 +287,20 @@ struct InterpretationView: View {
                                 .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.practicalStepsBlockBottom, for: geometry, isVertical: true))
                             }
                         }
-                        
-                        // Кнопка "Продолжить"
-                        Button(action: {
-                            navigationManager.navigate(to: .result(hexagram: hexagram, lines: lines, question: question))
-                        }) {
-                            Text("ПРОДОЛЖИТЬ")
-                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
-                                .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
-                        }
-                        .padding(.horizontal, scaledValue(DesignConstants.InterpretationScreen.Spacing.horizontalPadding, for: geometry))
-                        .padding(.bottom, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonToBottom, for: geometry, isVertical: true))
                     }
+                    .padding(.bottom, reserveHeight(for: geometry))
+            }
+            .overlay(alignment: .bottom) {
+                BottomBar.primary(
+                    title: "ПРОДОЛЖИТЬ",
+                    isDisabled: false,
+                    action: {
+                        navigationManager.navigate(to: .result(hexagram: hexagram, lines: lines, question: question))
+                    },
+                    lift: DesignConstants.Layout.ctaLiftSticky,
+                    geometry: geometry
+                )
+                .padding(.bottom, DesignConstants.Layout.ctaSafeBottomPadding)
             }
         }
     }
@@ -374,13 +374,36 @@ struct InterpretationView: View {
         return .system(size: size, weight: .medium)
     }
     
+    /// Создает шрифт Roboto Mono Light
+    private func robotoMonoLightFont(size: CGFloat) -> Font {
+        let fontNames = [
+            "Roboto Mono Light",
+            "RobotoMono-Light",
+            "RobotoMonoLight",
+            "RobotoMono-VariableFont_wght",
+            "Roboto Mono",
+            "RobotoMono"
+        ]
+        
+        for fontName in fontNames {
+            if UIFont(name: fontName, size: size) != nil {
+                return .custom(fontName, size: size)
+            }
+        }
+        
+        return .system(size: size, weight: .light, design: .monospaced)
+    }
+    
     /// Масштабирует значение относительно базового размера экрана
     /// Для горизонтальных значений использует ширину, для вертикальных - высоту
     private func scaledValue(_ value: CGFloat, for geometry: GeometryProxy, isVertical: Bool = false) -> CGFloat {
         let scaleFactor: CGFloat
         // Если значение относится к CoinsScreen (кнопки), используем его базовые размеры
         if value == DesignConstants.CoinsScreen.Spacing.buttonToBottom || 
-           value == DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding {
+           value == DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding ||
+           value == DesignConstants.CoinsScreen.Sizes.buttonHeight ||
+           value == DesignConstants.Layout.ctaLiftHigh ||
+           value == DesignConstants.Layout.ctaLiftSticky {
             if isVertical {
                 scaleFactor = geometry.size.height / DesignConstants.CoinsScreen.baseScreenHeight
             } else {
@@ -414,5 +437,13 @@ struct InterpretationView: View {
         let scaleFactor = min(widthScaleFactor, heightScaleFactor)
         return size * scaleFactor
     }
+    
+    /// Вычисляет высоту резерва для ScrollView content, чтобы последние строки были видны над BottomBar
+    /// Использует те же константы, что и BottomBar (buttonHeight + stickyOffset + small extra)
+    private func reserveHeight(for geometry: GeometryProxy) -> CGFloat {
+        let buttonHeight = scaledValue(DesignConstants.CoinsScreen.Sizes.buttonHeight, for: geometry, isVertical: true)
+        let stickyOffset = scaledValue(DesignConstants.Layout.ctaLiftSticky, for: geometry, isVertical: true)
+            + DesignConstants.Layout.ctaSafeBottomPadding
+        return buttonHeight + stickyOffset + 12
+    }
 }
-

@@ -17,7 +17,7 @@ struct QuestionView: View {
                 
                 // Заголовок "СФОРМУЛИРУЙТЕ ВОПРОС"
                 Text("СФОРМУЛИРУЙТЕ ВОПРОС")
-                        .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
                         .foregroundColor(DesignConstants.QuestionScreen.Colors.textBlue)
                         .padding(.horizontal, scaledValue(DesignConstants.QuestionScreen.Spacing.contentHorizontalPadding, for: geometry))
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -65,53 +65,25 @@ struct QuestionView: View {
                         }
                 }
                 
-                // Отступ от поля ввода до кнопок
-                // Когда клавиатура открыта - используем старую логику (inputToButtons - keyboardHeight + 60)
-                // Когда клавиатура закрыта - корректируем отступ так, чтобы кнопки были на той же высоте, что и на CoinsView
-                let baseSpacing = scaledValue(DesignConstants.QuestionScreen.Spacing.inputToButtons, for: geometry, isVertical: true)
-                let bottomSpacingDiff = scaledValue(DesignConstants.CoinsScreen.Spacing.buttonToBottom - DesignConstants.QuestionScreen.Spacing.buttonsToBottom, for: geometry, isVertical: true)
-                let adjustedSpacing = keyboardHeight > 0 
-                    ? baseSpacing - keyboardHeight + 60  // Старая логика при открытой клавиатуре
-                    : baseSpacing + bottomSpacingDiff   // Добавляем разницу в отступах снизу, чтобы кнопки были на той же высоте
-                
+                // Гибкий отступ для выталкивания контента вверх
                 Spacer()
-                    .frame(height: max(0, adjustedSpacing))
-                
-                // Кнопки (одна слева, одна справа)
-                HStack {
-                        // Кнопка "ПРОПУСТИТЬ" слева
-                        Button(action: {
-                            navigationManager.navigate(to: .coins(question: question.isEmpty ? nil : question))
-                        }) {
-                            Text("ПРОПУСТИТЬ")
-                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
-                                .foregroundColor(DesignConstants.QuestionScreen.Colors.textBlue)
-                                .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
-                        }
-                        .padding(.leading, scaledValue(40, for: geometry))
-                        
-                        Spacer()
-                        
-                        // Кнопка "БРОСИТЬ МОНЕТЫ" справа
-                        Button(action: {
-                            navigationManager.navigate(to: .coins(question: question.isEmpty ? nil : question))
-                        }) {
-                            Text("БРОСИТЬ МОНЕТЫ")
-                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
-                                .foregroundColor(DesignConstants.QuestionScreen.Colors.textBlue)
-                                .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
-                        }
-                        .padding(.trailing, scaledValue(40, for: geometry))
-                }
-                .frame(maxWidth: .infinity)
-                
-                // Отступ от кнопок до нижнего края
-                // Когда клавиатура закрыта - используем отступ как на CoinsView (164px)
-                // Когда клавиатура открыта - используем старый отступ (156px)
-                Spacer()
-                    .frame(height: keyboardHeight > 0 
-                        ? scaledValue(DesignConstants.QuestionScreen.Spacing.buttonsToBottom, for: geometry, isVertical: true)
-                        : scaledValue(DesignConstants.CoinsScreen.Spacing.buttonToBottom, for: geometry, isVertical: true))
+            }
+            .overlay(alignment: .bottom) {
+                BottomBar.dual(
+                    leftTitle: "ПРОПУСТИТЬ",
+                    leftIsDisabled: false,
+                    leftAction: {
+                        navigationManager.navigate(to: .coins(question: question.isEmpty ? nil : question))
+                    },
+                    rightTitle: "БРОСИТЬ МОНЕТЫ",
+                    rightIsDisabled: false,
+                    rightAction: {
+                        navigationManager.navigate(to: .coins(question: question.isEmpty ? nil : question))
+                    },
+                    lift: DesignConstants.Layout.ctaLiftSticky,
+                    geometry: geometry
+                )
+                .padding(.bottom, DesignConstants.Layout.ctaSafeBottomPadding)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notification in
@@ -175,6 +147,26 @@ struct QuestionView: View {
         
         // Fallback на системный шрифт
         return .system(size: size, weight: .medium)
+    }
+    
+    /// Создает шрифт Roboto Mono Light
+    private func robotoMonoLightFont(size: CGFloat) -> Font {
+        let fontNames = [
+            "Roboto Mono Light",
+            "RobotoMono-Light",
+            "RobotoMonoLight",
+            "RobotoMono-VariableFont_wght",
+            "Roboto Mono",
+            "RobotoMono"
+        ]
+        
+        for fontName in fontNames {
+            if UIFont(name: fontName, size: size) != nil {
+                return .custom(fontName, size: size)
+            }
+        }
+        
+        return .system(size: size, weight: .light, design: .monospaced)
     }
     
     /// Создает шрифт Roboto Mono Thin для параграфов
@@ -300,5 +292,4 @@ struct QuestionView: View {
         return size * scaleFactor
     }
 }
-
 

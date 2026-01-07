@@ -14,23 +14,8 @@ struct CoinsView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Гексаграмма - отдельный фрейм, зафиксирована сверху
-                VStack {
-                    Spacer()
-                        .frame(height: scaledValue(DesignConstants.CoinsScreen.Spacing.topToHexagram, for: geometry, isVertical: true))
-                    
-                    VStack(spacing: scaledValue(DesignConstants.CoinsScreen.Sizes.lineSpacing, for: geometry, isVertical: true)) {
-                        ForEach(Array(lines.reversed()), id: \.id) { line in
-                            LineView(line: line, geometry: geometry)
-                                .transition(.opacity)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    
-                    Spacer()
-                }
-                .frame(width: geometry.size.width, height: geometry.size.height)
-                .allowsHitTesting(false)
+                // Гексограмма теперь отображается через overlay в ContentView
+                // Здесь оставляем пустое пространство для правильного позиционирования остальных элементов
                 
                 // Анимация руки - абсолютное позиционирование
                 if currentThrow < totalThrows {
@@ -91,28 +76,22 @@ struct CoinsView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, scaledValue(DesignConstants.CoinsScreen.Spacing.counterHorizontalPadding, for: geometry))
                         
-                        // Отступ от счетчика до кнопки
-                        Spacer()
-                            .frame(height: scaledValue(DesignConstants.CoinsScreen.Spacing.counterToButton, for: geometry, isVertical: true))
-                        
-                        // Кнопка "БРОСИТЬ МОНЕТЫ"
-                        if currentThrow < totalThrows {
-                            Button(action: {
-                                throwCoins()
-                            }) {
-                                Text("БРОСИТЬ МОНЕТЫ")
-                                    .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
-                                    .foregroundColor(DesignConstants.CoinsScreen.Colors.buttonTextColor)
-                                    .padding(.horizontal, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonHorizontalPadding, for: geometry))
-                                    .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
-                            }
-                            .disabled(isThrowing)
-                            .frame(maxWidth: .infinity)
-                        }
-                        
                         Spacer()
                     }
                     .frame(width: geometry.size.width, height: geometry.size.height)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .overlay(alignment: .bottom) {
+                if currentThrow < totalThrows {
+                    BottomBar.primary(
+                        title: "БРОСИТЬ МОНЕТЫ",
+                        isDisabled: isThrowing,
+                        action: { throwCoins() },
+                        lift: DesignConstants.Layout.ctaLiftSticky,
+                        geometry: geometry
+                    )
+                    .padding(.bottom, DesignConstants.Layout.ctaSafeBottomPadding)
                 }
             }
         }
@@ -164,6 +143,9 @@ struct CoinsView: View {
             withAnimation(.easeInOut(duration: 0.3)) {
                 lines.append(line)
             }
+            
+            // Обновляем гексограмму в overlay
+            navigationManager.updateHexagramLines(lines)
             
             currentThrow += 1
             

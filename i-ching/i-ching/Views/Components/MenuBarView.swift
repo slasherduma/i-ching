@@ -16,7 +16,7 @@ struct MenuBarView: View {
                     navigationManager.popToRoot()
                 }) {
                     Text("МЕНЮ")
-                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                        .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                         .foregroundColor(DesignConstants.CoinsScreen.Colors.counterTextColor)
                 }
                 .padding(.leading, scaledValue(DesignConstants.CoinsScreen.Spacing.menuHorizontalPadding, for: geometry))
@@ -35,7 +35,7 @@ struct MenuBarView: View {
                     // Пока неактивна
                 }) {
                     Text("ЗВУК")
-                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                        .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                         .foregroundColor(DesignConstants.CoinsScreen.Colors.counterTextColor)
                 }
                 .disabled(true)

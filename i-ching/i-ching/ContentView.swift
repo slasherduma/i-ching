@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var navigationManager = NavigationManager()
+    @Namespace private var hexagramNamespace
     
     var body: some View {
         GeometryReader { geometry in
@@ -29,8 +30,33 @@ struct ContentView: View {
                     MenuBarView(geometry: geometry)
                         .environmentObject(navigationManager)
                 }
+                
+                // Гексограмма overlay - отображается только на экранах CoinsView и HexagramView
+                // Это гарантирует, что гексограмма не пересоздается при переходе между экранами
+                if !navigationManager.currentHexagramLines.isEmpty,
+                   let currentScreen = navigationManager.currentScreen {
+                    switch currentScreen {
+                    case .coins, .hexagram:
+                        HexagramOverlay(lines: navigationManager.currentHexagramLines, geometry: geometry)
+                    default:
+                        EmptyView()
+                    }
+                }
             }
         }
         .environmentObject(navigationManager)
+        .environment(\.hexagramNamespace, hexagramNamespace)
+    }
+}
+
+// Environment key для передачи namespace
+private struct HexagramNamespaceKey: EnvironmentKey {
+    static let defaultValue: Namespace.ID = Namespace().wrappedValue
+}
+
+extension EnvironmentValues {
+    var hexagramNamespace: Namespace.ID {
+        get { self[HexagramNamespaceKey.self] }
+        set { self[HexagramNamespaceKey.self] = newValue }
     }
 }

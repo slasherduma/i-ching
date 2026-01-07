@@ -53,7 +53,7 @@ struct HexagramView: View {
                                 .stroke(Color.black, lineWidth: 1)
                         )
                 }
-                .padding(.bottom, 40)
+                .padding(.bottom, 60)
             }
         }
         .fullScreenCover(isPresented: $showInterpretation) {

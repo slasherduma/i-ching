@@ -30,10 +30,16 @@ enum Screen: Hashable {
 /// Менеджер навигации для управления стеком экранов
 class NavigationManager: ObservableObject {
     @Published var screens: [Screen] = []
+    @Published var currentHexagramLines: [Line] = [] // Линии текущей гексограммы для overlay
     
     /// Текущий экран (последний в стеке)
     var currentScreen: Screen? {
         screens.last
+    }
+    
+    /// Обновляет линии гексограммы для overlay
+    func updateHexagramLines(_ lines: [Line]) {
+        currentHexagramLines = lines
     }
     
     /// Переход на указанный экран
@@ -47,6 +53,7 @@ class NavigationManager: ObservableObject {
     func popToRoot() {
         withAnimation(.easeInOut(duration: 0.2)) {
             screens.removeAll()
+            currentHexagramLines = [] // Очищаем гексограмму при возврате на StartView
         }
     }
     

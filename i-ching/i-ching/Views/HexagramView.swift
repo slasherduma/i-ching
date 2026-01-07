@@ -7,32 +7,11 @@ struct HexagramView: View {
     let question: String?
     @Environment(\.dismiss) var dismiss
     
-    private var hasChangingLines: Bool {
-        lines.contains { $0.isChanging }
-    }
-    
-    private var secondHexagram: Hexagram? {
-        hasChangingLines ? Hexagram.findSecond(byLines: lines) : nil
-    }
-    
-    private var interpretationText: String {
-        // Используем generalStrategy, если есть, иначе keyPhrase, иначе interpretation (первые несколько предложений)
-        if let generalStrategy = hexagram.generalStrategy {
-            // Берем первое предложение из generalStrategy
-            let sentences = generalStrategy.components(separatedBy: ".").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-            return sentences.first.map { $0 + "." } ?? generalStrategy
-        } else if let keyPhrase = hexagram.keyPhrase {
-            return keyPhrase
-        } else {
-            // Берем первое предложение из interpretation
-            let sentences = hexagram.interpretation.components(separatedBy: ".").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-            return sentences.first.map { $0 + "." } ?? hexagram.interpretation
-        }
-    }
-    
     var body: some View {
         GeometryReader { geometry in
-            VStack(spacing: 0) {
+            ZStack {
+                // Основной контент - может быть любого размера
+                VStack(alignment: .center, spacing: 0) {
                     // Отступ от верха до "Текущее состояние"
                     Spacer()
                         .frame(height: scaledValue(DesignConstants.HexagramScreen.Spacing.topToCurrentStateTitle, for: geometry, isVertical: true))
@@ -44,24 +23,28 @@ struct HexagramView: View {
                         .frame(maxWidth: .infinity)
                     
                     // Отступ от "Текущее состояние" до первой гексограммы
-                    // ВАЖНО: гексограмма должна быть на 259px от верха (как на CoinsScreen)
-                    // Вычисляем отступ так, чтобы гексограмма была на правильной позиции
+                    // ВАЖНО: гексограмма должна быть на 360px от верха (как на CoinsScreen)
+                    // Используем CoinsScreen.topToHexagram для идентичного масштабирования
                     let titleTop = scaledValue(DesignConstants.HexagramScreen.Spacing.topToCurrentStateTitle, for: geometry, isVertical: true)
                     let titleFontSize = scaledFontSize(DesignConstants.HexagramScreen.Typography.currentStateTitleSize, for: geometry)
-                    let hexagramTop = scaledValue(DesignConstants.HexagramScreen.Spacing.topToFirstHexagram, for: geometry, isVertical: true)
+                    // Используем CoinsScreen.topToHexagram для гарантии идентичного позиционирования
+                    let hexagramTop = scaledValue(DesignConstants.CoinsScreen.Spacing.topToHexagram, for: geometry, isVertical: true)
                     let spacingNeeded = hexagramTop - titleTop - titleFontSize
                     
                     Spacer()
                         .frame(height: max(0, spacingNeeded))
                     
-                    // Первая гексограмма
-                    VStack(spacing: scaledValue(DesignConstants.HexagramScreen.Sizes.lineSpacing, for: geometry, isVertical: true)) {
+                    // Гексограмма теперь отображается через overlay в ContentView
+                    // Здесь оставляем пустое пространство для правильного позиционирования остальных элементов
+                    // Высота гексограммы для резервирования пространства
+                    VStack(spacing: scaledValue(DesignConstants.CoinsScreen.Sizes.lineSpacing, for: geometry, isVertical: true)) {
                         ForEach(Array(lines.reversed()), id: \.id) { line in
-                            LineView(line: line, geometry: geometry)
-                                .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                            // Невидимая линия для резервирования пространства
+                            Color.clear
+                                .frame(height: scaledValue(DesignConstants.CoinsScreen.Sizes.lineThickness, for: geometry, isVertical: true))
                         }
                     }
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .center)
                     
                     // Отступ от первой гексограммы до "Гексограмма 11: МИР"
                     Spacer()
@@ -105,7 +88,8 @@ struct HexagramView: View {
                             .frame(height: scaledValue(DesignConstants.HexagramScreen.Spacing.questionToSecondHexagram, for: geometry, isVertical: true))
                         
                         // Вторая гексограмма
-                        VStack(spacing: scaledValue(DesignConstants.HexagramScreen.Sizes.lineSpacing, for: geometry, isVertical: true)) {
+                        // Используем те же размеры, что и на CoinsScreen для идентичного отображения
+                        VStack(spacing: scaledValue(DesignConstants.CoinsScreen.Sizes.lineSpacing, for: geometry, isVertical: true)) {
                             ForEach(Array(lines.reversed()), id: \.id) { line in
                                 let changedLine = Line(
                                     isYang: line.isChanging ? !line.isYang : line.isYang,
@@ -115,7 +99,7 @@ struct HexagramView: View {
                                 LineView(line: changedLine, geometry: geometry)
                             }
                         }
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: .infinity, alignment: .center)
                         
                         // Отступ от второй гексограммы до "Гексограмма 14: ..."
                         Spacer()
@@ -127,32 +111,59 @@ struct HexagramView: View {
                             .foregroundColor(DesignConstants.HexagramScreen.Colors.textBlue)
                             .frame(maxWidth: .infinity)
                         
-                        // Отступ от "Гексограмма 14: ..." до кнопки
-                        Spacer()
-                            .frame(height: scaledValue(DesignConstants.HexagramScreen.Spacing.secondLabelToButton, for: geometry, isVertical: true))
-                    } else {
-                        // Если нет второй гексограммы, добавляем отступ перед кнопкой
-                        Spacer()
-                            .frame(height: scaledValue(DesignConstants.HexagramScreen.Spacing.secondLabelToButton, for: geometry, isVertical: true))
+                        // Отступ от "Гексограмма 14: ..." до конца контента
                     }
                     
-                    // Гибкий отступ для выталкивания кнопки вниз
+                    // Контент может быть любого размера
                     Spacer()
-                    
-                    // Кнопка "ПОДРОБНЕЕ"
-                    Button(action: {
+                }
+            }
+            .overlay(alignment: .bottom) {
+                BottomBar.primary(
+                    title: "ПОДРОБНЕЕ",
+                    isDisabled: false,
+                    action: {
                         let secondHexagram = hasChangingLines ? Hexagram.findSecond(byLines: lines) : nil
                         navigationManager.navigate(to: .interpretation(hexagram: hexagram, lines: lines, question: question, secondHexagram: secondHexagram))
-                    }) {
-                        Text("ПОДРОБНЕЕ")
-                            .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
-                            .foregroundColor(DesignConstants.HexagramScreen.Colors.textBlue)
-                            .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
-                            .frame(maxWidth: .infinity)
-                    }
-                    .padding(.bottom, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonToBottom, for: geometry, isVertical: true))
+                    },
+                    lift: DesignConstants.Layout.ctaLiftSticky,
+                    geometry: geometry
+                )
+                .padding(.bottom, DesignConstants.Layout.ctaSafeBottomPadding)
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
+        }
+        .onAppear {
+            // Обновляем гексограмму в overlay при появлении экрана
+            navigationManager.updateHexagramLines(lines)
+        }
+    }
+    
+    private var hasChangingLines: Bool {
+        lines.contains { $0.isChanging }
+    }
+    
+    private var secondHexagram: Hexagram? {
+        hasChangingLines ? Hexagram.findSecond(byLines: lines) : nil
+    }
+    
+    init(hexagram: Hexagram, lines: [Line], question: String?) {
+        self.hexagram = hexagram
+        self.lines = lines
+        self.question = question
+    }
+    
+    private var interpretationText: String {
+        // Используем generalStrategy, если есть, иначе keyPhrase, иначе interpretation (первые несколько предложений)
+        if let generalStrategy = hexagram.generalStrategy {
+            // Берем первое предложение из generalStrategy
+            let sentences = generalStrategy.components(separatedBy: ".").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            return sentences.first.map { $0 + "." } ?? generalStrategy
+        } else if let keyPhrase = hexagram.keyPhrase {
+            return keyPhrase
+        } else {
+            // Берем первое предложение из interpretation
+            let sentences = hexagram.interpretation.components(separatedBy: ".").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            return sentences.first.map { $0 + "." } ?? hexagram.interpretation
         }
     }
     
@@ -162,9 +173,15 @@ struct HexagramView: View {
     /// Для горизонтальных значений использует ширину, для вертикальных - высоту
     private func scaledValue(_ value: CGFloat, for geometry: GeometryProxy, isVertical: Bool = false) -> CGFloat {
         let scaleFactor: CGFloat
-        // Если значение относится к CoinsScreen (кнопки), используем его базовые размеры
+        // Если значение относится к CoinsScreen (кнопки, позиция гексограммы), используем его базовые размеры
+        // Это гарантирует, что гексограмма будет в том же месте на обоих экранах
         if value == DesignConstants.CoinsScreen.Spacing.buttonToBottom || 
            value == DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding ||
+           value == DesignConstants.CoinsScreen.Sizes.buttonHeight ||
+           value == DesignConstants.CoinsScreen.Spacing.topToHexagram ||
+           value == DesignConstants.HexagramScreen.Spacing.topToFirstHexagram ||
+           value == DesignConstants.CoinsScreen.Sizes.lineSpacing ||
+           value == DesignConstants.HexagramScreen.Sizes.lineSpacing ||
            value == 40 {
             if isVertical {
                 scaleFactor = geometry.size.height / DesignConstants.CoinsScreen.baseScreenHeight
@@ -222,6 +239,26 @@ struct HexagramView: View {
         
         // Fallback на системный шрифт
         return .system(size: size, weight: .medium)
+    }
+    
+    /// Создает шрифт Roboto Mono Light
+    private func robotoMonoLightFont(size: CGFloat) -> Font {
+        let fontNames = [
+            "Roboto Mono Light",
+            "RobotoMono-Light",
+            "RobotoMonoLight",
+            "RobotoMono-VariableFont_wght",
+            "Roboto Mono",
+            "RobotoMono"
+        ]
+        
+        for fontName in fontNames {
+            if UIFont(name: fontName, size: size) != nil {
+                return .custom(fontName, size: size)
+            }
+        }
+        
+        return .system(size: size, weight: .light, design: .monospaced)
     }
     
     /// Создает шрифт Druk Wide Cyr

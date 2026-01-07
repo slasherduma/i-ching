@@ -7,8 +7,10 @@
 		<string>7fonts.ru_ChinaCyr.ttf</string>
 		<string>Druk Wide Cyr Medium.otf</string>
 		<string>Druk XXCondensed Cyr Super.otf</string>
-		<string>ZenOldMincho-Bold.ttf</string>
+		<string>RampartOne-Regular.ttf</string>
 		<string>RobotoMono-VariableFont_wght.ttf</string>
 	</array>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Уведомления используются для напоминания о ежедневном знаке дня</string>
 </dict>
 </plist>

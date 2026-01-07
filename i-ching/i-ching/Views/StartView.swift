@@ -153,7 +153,8 @@ struct StartView: View {
                             }
                         }) {
                             Text("СДЕЛАТЬ РАСКЛАД")
-                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .foregroundColor(DesignConstants.StartScreen.Colors.buttonTextColor)
                                 .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
                                 .frame(maxWidth: .infinity)
                         }
@@ -165,7 +166,8 @@ struct StartView: View {
                             }
                         }) {
                             Text("ЗНАК ДНЯ")
-                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .foregroundColor(DesignConstants.StartScreen.Colors.buttonTextColor)
                                 .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
                                 .frame(maxWidth: .infinity)
                         }
@@ -177,7 +179,8 @@ struct StartView: View {
                             }
                         }) {
                             Text("ДНЕВНИК ПРЕДСКАЗАНИЙ")
-                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .foregroundColor(DesignConstants.StartScreen.Colors.buttonTextColor)
                                 .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
                                 .frame(maxWidth: .infinity)
                                 .multilineTextAlignment(.center)
@@ -190,7 +193,8 @@ struct StartView: View {
                             }
                         }) {
                             Text("ПОМОЩЬ")
-                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .foregroundColor(DesignConstants.StartScreen.Colors.buttonTextColor)
                                 .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
                                 .frame(maxWidth: .infinity)
                         }
@@ -340,6 +344,26 @@ struct StartView: View {
         
         // Fallback на системный шрифт
         return .system(size: size, weight: .medium)
+    }
+    
+    /// Создает шрифт Roboto Mono Light
+    private func robotoMonoLightFont(size: CGFloat) -> Font {
+        let fontNames = [
+            "Roboto Mono Light",
+            "RobotoMono-Light",
+            "RobotoMonoLight",
+            "RobotoMono-VariableFont_wght",
+            "Roboto Mono",
+            "RobotoMono"
+        ]
+        
+        for fontName in fontNames {
+            if UIFont(name: fontName, size: size) != nil {
+                return .custom(fontName, size: size)
+            }
+        }
+        
+        return .system(size: size, weight: .light, design: .monospaced)
     }
     
     /// Масштабирует значение относительно базового размера экрана
