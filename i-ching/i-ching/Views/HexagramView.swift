@@ -1,10 +1,11 @@
 import SwiftUI
 
 struct HexagramView: View {
+    @EnvironmentObject var navigationManager: NavigationManager
     let hexagram: Hexagram
     let lines: [Line]
     let question: String?
-    @State private var showInterpretation = false
+    @Environment(\.dismiss) var dismiss
     
     private var hasChangingLines: Bool {
         lines.contains { $0.isChanging }
@@ -31,19 +32,14 @@ struct HexagramView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack {
-                // Бежевый фон
-                DesignConstants.HexagramScreen.Colors.backgroundBeige
-                    .ignoresSafeArea()
-                
-                VStack(spacing: 0) {
+            VStack(spacing: 0) {
                     // Отступ от верха до "Текущее состояние"
                     Spacer()
                         .frame(height: scaledValue(DesignConstants.HexagramScreen.Spacing.topToCurrentStateTitle, for: geometry, isVertical: true))
                     
                     // Заголовок "Текущее состояние"
                     Text("Текущее состояние")
-                        .font(robotoMonoFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.currentStateTitleSize, for: geometry)))
+                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.currentStateTitleSize, for: geometry)))
                         .foregroundColor(DesignConstants.HexagramScreen.Colors.textBlue)
                         .frame(maxWidth: .infinity)
                     
@@ -98,7 +94,7 @@ struct HexagramView: View {
                         
                         // Вопрос "Куда всё движется если ничего не менять"
                         Text("Куда всё движется если ничего не менять")
-                            .font(robotoMonoFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.questionSize, for: geometry)))
+                            .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.questionSize, for: geometry)))
                             .foregroundColor(DesignConstants.HexagramScreen.Colors.textBlue)
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
@@ -145,21 +141,18 @@ struct HexagramView: View {
                     
                     // Кнопка "ПОДРОБНЕЕ"
                     Button(action: {
-                        showInterpretation = true
+                        let secondHexagram = hasChangingLines ? Hexagram.findSecond(byLines: lines) : nil
+                        navigationManager.navigate(to: .interpretation(hexagram: hexagram, lines: lines, question: question, secondHexagram: secondHexagram))
                     }) {
                         Text("ПОДРОБНЕЕ")
-                            .font(drukWideCyrFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.buttonSize, for: geometry)))
+                            .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
                             .foregroundColor(DesignConstants.HexagramScreen.Colors.textBlue)
+                            .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
                             .frame(maxWidth: .infinity)
                     }
-                    .padding(.bottom, scaledValue(DesignConstants.QuestionScreen.Spacing.buttonsToBottom, for: geometry, isVertical: true))
-                }
-                .frame(width: geometry.size.width, height: geometry.size.height)
+                    .padding(.bottom, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonToBottom, for: geometry, isVertical: true))
             }
-        }
-        .fullScreenCover(isPresented: $showInterpretation) {
-            InterpretationView(hexagram: hexagram, lines: lines, question: question, secondHexagram: secondHexagram)
-                .transition(.opacity)
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
     }
     
@@ -169,10 +162,21 @@ struct HexagramView: View {
     /// Для горизонтальных значений использует ширину, для вертикальных - высоту
     private func scaledValue(_ value: CGFloat, for geometry: GeometryProxy, isVertical: Bool = false) -> CGFloat {
         let scaleFactor: CGFloat
-        if isVertical {
-            scaleFactor = geometry.size.height / DesignConstants.HexagramScreen.baseScreenHeight
+        // Если значение относится к CoinsScreen (кнопки), используем его базовые размеры
+        if value == DesignConstants.CoinsScreen.Spacing.buttonToBottom || 
+           value == DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding ||
+           value == 40 {
+            if isVertical {
+                scaleFactor = geometry.size.height / DesignConstants.CoinsScreen.baseScreenHeight
+            } else {
+                scaleFactor = geometry.size.width / DesignConstants.CoinsScreen.baseScreenWidth
+            }
         } else {
-            scaleFactor = geometry.size.width / DesignConstants.HexagramScreen.baseScreenWidth
+            if isVertical {
+                scaleFactor = geometry.size.height / DesignConstants.HexagramScreen.baseScreenHeight
+            } else {
+                scaleFactor = geometry.size.width / DesignConstants.HexagramScreen.baseScreenWidth
+            }
         }
         return value * scaleFactor
     }
@@ -180,8 +184,18 @@ struct HexagramView: View {
     /// Масштабирует размер шрифта пропорционально размерам экрана
     /// Использует минимальный коэффициент для сохранения пропорций
     private func scaledFontSize(_ size: CGFloat, for geometry: GeometryProxy) -> CGFloat {
-        let widthScaleFactor = geometry.size.width / DesignConstants.HexagramScreen.baseScreenWidth
-        let heightScaleFactor = geometry.size.height / DesignConstants.HexagramScreen.baseScreenHeight
+        // Если размер относится к CoinsScreen (кнопки), используем его базовые размеры
+        let widthScaleFactor: CGFloat
+        let heightScaleFactor: CGFloat
+        
+        if size == DesignConstants.CoinsScreen.Typography.buttonTextSize {
+            widthScaleFactor = geometry.size.width / DesignConstants.CoinsScreen.baseScreenWidth
+            heightScaleFactor = geometry.size.height / DesignConstants.CoinsScreen.baseScreenHeight
+        } else {
+            widthScaleFactor = geometry.size.width / DesignConstants.HexagramScreen.baseScreenWidth
+            heightScaleFactor = geometry.size.height / DesignConstants.HexagramScreen.baseScreenHeight
+        }
+        
         let scaleFactor = min(widthScaleFactor, heightScaleFactor)
         return size * scaleFactor
     }

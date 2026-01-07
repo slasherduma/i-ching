@@ -1,11 +1,11 @@
 import Foundation
 
-struct Trigram: Codable {
+struct Trigram: Codable, Hashable {
     let name: String
     let description: String
 }
 
-struct Hexagram: Codable, Identifiable {
+struct Hexagram: Codable, Identifiable, Hashable {
     let id: Int
     let number: Int
     let name: String
@@ -26,7 +26,7 @@ struct Hexagram: Codable, Identifiable {
     let leadershipStrategy: String?
     let practicalAdvice: [String]?
     
-    struct TrigramPair: Codable {
+    struct TrigramPair: Codable, Hashable {
         let upper: Trigram
         let lower: Trigram
     }
@@ -79,9 +79,15 @@ struct Hexagram: Codable, Identifiable {
         }
         return find(byLines: changedLines)
     }
+    
+    // Поиск гексаграммы по номеру
+    static func findByNumber(_ number: Int) -> Hexagram? {
+        let hexagrams = loadAll()
+        return hexagrams.first { $0.number == number }
+    }
 }
 
-struct Line: Identifiable {
+struct Line: Identifiable, Hashable {
     let id = UUID()
     let isYang: Bool
     let isChanging: Bool

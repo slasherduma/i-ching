@@ -1,13 +1,14 @@
 import SwiftUI
 
 struct InterpretationView: View {
+    @EnvironmentObject var navigationManager: NavigationManager
     let hexagram: Hexagram
     let lines: [Line]
     let question: String?
     let secondHexagram: Hexagram?
-    @State private var showResult = false
     @State private var showAdvanced = false
     @State private var selectedRole: UserRole = .leader
+    @Environment(\.dismiss) var dismiss
     
     private var interpretation: InterpretationResult {
         InterpretationService.shared.generateInterpretation(
@@ -33,12 +34,7 @@ struct InterpretationView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack {
-                // Бежевый фон
-                DesignConstants.InterpretationScreen.Colors.backgroundBeige
-                    .ignoresSafeArea()
-                
-                ScrollView {
+            ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         // Главный заголовок (keyPhrase) - Helvetica Neue Light 36pt
                         if let keyPhrase = hexagram.keyPhrase {
@@ -294,23 +290,18 @@ struct InterpretationView: View {
                         
                         // Кнопка "Продолжить"
                         Button(action: {
-                            showResult = true
+                            navigationManager.navigate(to: .result(hexagram: hexagram, lines: lines, question: question))
                         }) {
                             Text("ПРОДОЛЖИТЬ")
-                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.buttonSize, for: geometry)))
+                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
                                 .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue)
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, scaledValue(13, for: geometry, isVertical: true))
+                                .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
                         }
                         .padding(.horizontal, scaledValue(DesignConstants.InterpretationScreen.Spacing.horizontalPadding, for: geometry))
-                        .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.continueButtonBottom, for: geometry, isVertical: true))
+                        .padding(.bottom, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonToBottom, for: geometry, isVertical: true))
                     }
-                }
             }
-        }
-        .fullScreenCover(isPresented: $showResult) {
-            ResultView(hexagram: hexagram, lines: lines, question: question)
-                .transition(.opacity)
         }
     }
     
@@ -387,10 +378,20 @@ struct InterpretationView: View {
     /// Для горизонтальных значений использует ширину, для вертикальных - высоту
     private func scaledValue(_ value: CGFloat, for geometry: GeometryProxy, isVertical: Bool = false) -> CGFloat {
         let scaleFactor: CGFloat
-        if isVertical {
-            scaleFactor = geometry.size.height / DesignConstants.InterpretationScreen.baseScreenHeight
+        // Если значение относится к CoinsScreen (кнопки), используем его базовые размеры
+        if value == DesignConstants.CoinsScreen.Spacing.buttonToBottom || 
+           value == DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding {
+            if isVertical {
+                scaleFactor = geometry.size.height / DesignConstants.CoinsScreen.baseScreenHeight
+            } else {
+                scaleFactor = geometry.size.width / DesignConstants.CoinsScreen.baseScreenWidth
+            }
         } else {
-            scaleFactor = geometry.size.width / DesignConstants.InterpretationScreen.baseScreenWidth
+            if isVertical {
+                scaleFactor = geometry.size.height / DesignConstants.InterpretationScreen.baseScreenHeight
+            } else {
+                scaleFactor = geometry.size.width / DesignConstants.InterpretationScreen.baseScreenWidth
+            }
         }
         return value * scaleFactor
     }
@@ -398,9 +399,20 @@ struct InterpretationView: View {
     /// Масштабирует размер шрифта пропорционально размерам экрана
     /// Использует минимальный коэффициент для сохранения пропорций макета
     private func scaledFontSize(_ size: CGFloat, for geometry: GeometryProxy) -> CGFloat {
-        let widthScaleFactor = geometry.size.width / DesignConstants.InterpretationScreen.baseScreenWidth
-        let heightScaleFactor = geometry.size.height / DesignConstants.InterpretationScreen.baseScreenHeight
+        // Если размер относится к CoinsScreen (кнопки), используем его базовые размеры
+        let widthScaleFactor: CGFloat
+        let heightScaleFactor: CGFloat
+        
+        if size == DesignConstants.CoinsScreen.Typography.buttonTextSize {
+            widthScaleFactor = geometry.size.width / DesignConstants.CoinsScreen.baseScreenWidth
+            heightScaleFactor = geometry.size.height / DesignConstants.CoinsScreen.baseScreenHeight
+        } else {
+            widthScaleFactor = geometry.size.width / DesignConstants.InterpretationScreen.baseScreenWidth
+            heightScaleFactor = geometry.size.height / DesignConstants.InterpretationScreen.baseScreenHeight
+        }
+        
         let scaleFactor = min(widthScaleFactor, heightScaleFactor)
         return size * scaleFactor
     }
 }
+

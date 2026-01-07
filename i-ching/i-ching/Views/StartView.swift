@@ -2,53 +2,108 @@ import SwiftUI
 import UIKit
 
 struct StartView: View {
-    @State private var showQuestion = false
+    @EnvironmentObject var navigationManager: NavigationManager
     @State private var showHistory = false
     @State private var showTutorial = false
     @State private var showDailySign = false
+    @State private var tappedButtonId: String? = nil
     
     private var hasSeenTutorial: Bool {
         UserDefaults.standard.bool(forKey: "hasSeenTutorial")
     }
     
+    // Computed properties для цветов кнопок
+    private var questionButtonColor: Color {
+        tappedButtonId == "question" ? DesignConstants.StartScreen.Colors.titleRed : DesignConstants.StartScreen.Colors.buttonBlue
+    }
+    
+    private var dailySignButtonColor: Color {
+        tappedButtonId == "dailySign" ? DesignConstants.StartScreen.Colors.titleRed : DesignConstants.StartScreen.Colors.buttonBlue
+    }
+    
+    private var historyButtonColor: Color {
+        tappedButtonId == "history" ? DesignConstants.StartScreen.Colors.titleRed : DesignConstants.StartScreen.Colors.buttonBlue
+    }
+    
+    private var tutorialButtonColor: Color {
+        tappedButtonId == "tutorial" ? DesignConstants.StartScreen.Colors.titleRed : DesignConstants.StartScreen.Colors.buttonBlue
+    }
+    
+    // Функция для обработки нажатия кнопки
+    private func handleButtonTap(buttonId: String, action: @escaping () -> Void) {
+        // Сначала показываем красный цвет
+        tappedButtonId = buttonId
+        
+        // Задерживаем переход на экран, чтобы показать красный блинк
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            action()
+            // Возвращаем цвет обратно через еще 0.1 секунду
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                tappedButtonId = nil
+            }
+        }
+    }
+    
     var body: some View {
         GeometryReader { geometry in
-            ZStack {
-                // Бежевый фон
-                DesignConstants.StartScreen.Colors.backgroundBeige
-                    .ignoresSafeArea()
-                
-                VStack(spacing: 0) {
+            VStack(spacing: 0) {
                     // Верхний отступ до иероглифов (вертикальный отступ - используем высоту)
                     Spacer()
                         .frame(height: scaledValue(DesignConstants.StartScreen.Spacing.topToChineseCharacters, for: geometry, isVertical: true))
                     
-                    // Иероглифы 乾 и 坤 сверху
-                    HStack(spacing: scaledValue(DesignConstants.StartScreen.Spacing.betweenChineseCharacters, for: geometry)) {
+                    // Иероглифы 乾 и 坤 сверху с надписью И-ЦЗИН между ними и КНИГА ПЕРЕМЕН под ней
+                    HStack(spacing: 0) {
                         Text("乾")
-                            .font(zenOldMinchoFont(size: scaledFontSize(DesignConstants.StartScreen.Typography.chineseCharactersSize, for: geometry)))
+                            .font(rampartOneFont(size: scaledFontSize(DesignConstants.StartScreen.Typography.chineseCharactersSize, for: geometry)))
                             .foregroundColor(DesignConstants.StartScreen.Colors.titleRed)
                         
+                        // Отступ 20px от иероглифа до "И-ЦЗИН"
+                        Spacer()
+                            .frame(width: scaledValue(20, for: geometry))
+                        
+                        // VStack для "И-ЦЗИН" и "КНИГА ПЕРЕМЕН" - используем overlay для точного позиционирования
+                        ZStack(alignment: .top) {
+                            Text("И-ЦЗИН")
+                                .font(drukXXCondensedFont(size: scaledFontSize(DesignConstants.StartScreen.Typography.mainTitleSize, for: geometry)))
+                                .foregroundColor(DesignConstants.StartScreen.Colors.titleRed)
+                                .lineLimit(1)
+                            
+                            Text("КНИГА ПЕРЕМЕН")
+                                .font(drukXXCondensedFont(size: scaledFontSize(42, for: geometry))) // Увеличено для соответствия отступам "И-ЦЗИН"
+                                .tracking(scaledFontSize(42, for: geometry) * 0.07) // Увеличение расстояния между буквами на 7%
+                                .foregroundColor(DesignConstants.StartScreen.Colors.titleRed)
+                                .lineLimit(1)
+                                .offset(y: scaledFontSize(DesignConstants.StartScreen.Typography.mainTitleSize, for: geometry) + scaledValue(2.5, for: geometry, isVertical: true))
+                        }
+                        
+                        // Отступ 20px от "И-ЦЗИН" до иероглифа
+                        Spacer()
+                            .frame(width: scaledValue(20, for: geometry))
+                        
                         Text("坤")
-                            .font(zenOldMinchoFont(size: scaledFontSize(DesignConstants.StartScreen.Typography.chineseCharactersSize, for: geometry)))
+                            .font(rampartOneFont(size: scaledFontSize(DesignConstants.StartScreen.Typography.chineseCharactersSize, for: geometry)))
                             .foregroundColor(DesignConstants.StartScreen.Colors.titleRed)
                     }
                     .padding(.horizontal, scaledValue(DesignConstants.StartScreen.Spacing.chineseCharactersHorizontalPadding, for: geometry))
                     .frame(maxWidth: .infinity)
                     
-                    // Отступ от иероглифов до драконов (12px из макета - вертикальный)
+                    // Минимальный отступ от "КНИГА ПЕРЕМЕН" до драконов
+                    // Убираем большой отступ, чтобы поднять драконы
                     Spacer()
-                        .frame(height: scaledValue(DesignConstants.StartScreen.Spacing.chineseCharactersToDragons, for: geometry, isVertical: true))
+                        .frame(height: scaledValue(10, for: geometry, isVertical: true))
                     
-                    // Драконы - центрируем по горизонтали и вертикали
-                    // Используем ширину для горизонтального масштабирования, высоту для вертикального
+                    // Драконы - центрируем по горизонтали с отступами 80px слева и справа
+                    // При размере холста 660px ширина драконов = 660 - 160 (80*2) = 500px
                     let horizontalScaleFactor = geometry.size.width / DesignConstants.StartScreen.baseScreenWidth
                     let verticalScaleFactor = geometry.size.height / DesignConstants.StartScreen.baseScreenHeight
-                    let dragonsWidth = DesignConstants.StartScreen.Spacing.dragonsWidth * horizontalScaleFactor
+                    let dragonsWidth = (DesignConstants.StartScreen.baseScreenWidth - 160) * horizontalScaleFactor // 660 - 160 = 500px
                     let dragonsHeight = DesignConstants.StartScreen.Spacing.dragonsHeight * verticalScaleFactor
                     
                     HStack {
+                        // Отступ слева 80px
                         Spacer()
+                            .frame(width: scaledValue(80, for: geometry))
+                        
                         Group {
                             if let uiImage = UIImage(named: "dragons-hero") {
                                 Image(uiImage: uiImage)
@@ -80,75 +135,72 @@ struct StartView: View {
                                     )
                             }
                         }
+                        
+                        // Отступ справа 80px
                         Spacer()
+                            .frame(width: scaledValue(80, for: geometry))
                     }
                     
-                    // Отступ от драконов до первой кнопки (190px из макета - вертикальный)
+                    // Отступ от драконов до первой кнопки (190px - 100px = 90px, чтобы поднять кнопки на 100px вверх)
                     Spacer()
-                        .frame(height: scaledValue(DesignConstants.StartScreen.Spacing.dragonsToFirstButton, for: geometry, isVertical: true))
+                        .frame(height: scaledValue(DesignConstants.StartScreen.Spacing.dragonsToFirstButton - 100, for: geometry, isVertical: true))
                     
                     // Кнопки
                     VStack(spacing: scaledValue(DesignConstants.StartScreen.Spacing.buttonSpacing, for: geometry, isVertical: true)) {
                         Button(action: {
-                            showQuestion = true
+                            handleButtonTap(buttonId: "question") {
+                                navigationManager.navigate(to: .question)
+                            }
                         }) {
                             Text("СДЕЛАТЬ РАСКЛАД")
-                                .font(drukWideCyrFont(size: scaledFontSize(DesignConstants.StartScreen.Typography.buttonTextSize, for: geometry)))
-                                .foregroundColor(DesignConstants.StartScreen.Colors.buttonBlue)
+                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
                                 .frame(maxWidth: .infinity)
                         }
+                        .buttonStyle(RedTapButtonStyle(isTapped: tappedButtonId == "question"))
                         
                         Button(action: {
-                            showDailySign = true
+                            handleButtonTap(buttonId: "dailySign") {
+                                showDailySign = true
+                            }
                         }) {
                             Text("ЗНАК ДНЯ")
-                                .font(drukWideCyrFont(size: scaledFontSize(DesignConstants.StartScreen.Typography.buttonTextSize, for: geometry)))
-                                .foregroundColor(DesignConstants.StartScreen.Colors.buttonBlue)
+                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
                                 .frame(maxWidth: .infinity)
                         }
+                        .buttonStyle(RedTapButtonStyle(isTapped: tappedButtonId == "question"))
                         
                         Button(action: {
-                            showHistory = true
+                            handleButtonTap(buttonId: "history") {
+                                showHistory = true
+                            }
                         }) {
                             Text("ДНЕВНИК ПРЕДСКАЗАНИЙ")
-                                .font(drukWideCyrFont(size: scaledFontSize(DesignConstants.StartScreen.Typography.buttonTextSize, for: geometry)))
-                                .foregroundColor(DesignConstants.StartScreen.Colors.buttonBlue)
+                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
                                 .frame(maxWidth: .infinity)
                                 .multilineTextAlignment(.center)
                         }
+                        .buttonStyle(RedTapButtonStyle(isTapped: tappedButtonId == "question"))
+                        
+                        Button(action: {
+                            handleButtonTap(buttonId: "tutorial") {
+                                showTutorial = true
+                            }
+                        }) {
+                            Text("ПОМОЩЬ")
+                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(RedTapButtonStyle(isTapped: tappedButtonId == "question"))
                     }
                     .frame(maxWidth: .infinity)
                     
                     // Нижний отступ (вертикальный)
                     Spacer()
                         .frame(height: scaledValue(DesignConstants.StartScreen.Spacing.lastButtonToBottom, for: geometry, isVertical: true))
-                }
-                
-                // Тексты "И-ЦЗИН" и "КНИГА ПЕРЕМЕН" позиционируются относительно нижнего края
-                VStack(spacing: 0) {
-                    Spacer()
-                    
-                    // "И-ЦЗИН" на 476px от нижнего края (с учетом масштабирования)
-                    Text("И-ЦЗИН")
-                        .font(drukXXCondensedFont(size: scaledFontSize(DesignConstants.StartScreen.Typography.mainTitleSize, for: geometry)))
-                        .foregroundColor(DesignConstants.StartScreen.Colors.titleRed)
-                        .lineLimit(1)
-                    
-                    // "КНИГА ПЕРЕМЕН" на 20px ниже "И-ЦЗИН" (с учетом масштабирования - вертикальный)
-                    Spacer()
-                        .frame(height: scaledValue(DesignConstants.StartScreen.Spacing.subtitleFromMainTitle, for: geometry, isVertical: true))
-                    
-                    Text("КНИГА ПЕРЕМЕН")
-                        .font(helveticaNeueFont(size: scaledFontSize(DesignConstants.StartScreen.Typography.subtitleSize, for: geometry)))
-                        .foregroundColor(DesignConstants.StartScreen.Colors.titleRed)
-                        .lineLimit(1)
-                    
-                    // Отступ от нижнего края до "И-ЦЗИН" = 476px (с учетом масштабирования - вертикальный)
-                    // Это расстояние от нижнего края до нижней границы "И-ЦЗИН"
-                    Spacer()
-                        .frame(height: scaledValue(DesignConstants.StartScreen.Spacing.mainTitleFromBottom, for: geometry, isVertical: true))
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
             }
         }
         .onAppear {
@@ -159,12 +211,13 @@ struct StartView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenDailySign"))) { _ in
+            // Открываем экран знака дня при нажатии на уведомление
+            print("📱 StartView: получено событие OpenDailySign - открываем экран знака дня")
+            showDailySign = true
+        }
         .fullScreenCover(isPresented: $showTutorial) {
             TutorialView(isPresented: $showTutorial)
-                .transition(.opacity)
-        }
-        .fullScreenCover(isPresented: $showQuestion) {
-            QuestionView()
                 .transition(.opacity)
         }
         .fullScreenCover(isPresented: $showDailySign) {
@@ -179,17 +232,15 @@ struct StartView: View {
     
     // MARK: - Helper Functions
     
-    /// Создает шрифт Zen Old Mincho для иероглифов
-    private func zenOldMinchoFont(size: CGFloat) -> Font {
+    /// Создает шрифт Rampart One regular для иероглифов
+    private func rampartOneFont(size: CGFloat) -> Font {
         // Проверяем все возможные варианты имен
         let fontNames = [
-            "ZenOldMincho-Bold",
-            "ZenOldMinchoBold",
-            "Zen Old Mincho Bold",
-            "ZenOldMincho",
-            "Zen Old Mincho",
-            "ZenOldMincho-Regular",
-            "ZenOldMinchoRegular"
+            "Rampart One",
+            "RampartOne-Regular",
+            "RampartOneRegular",
+            "RampartOne",
+            "Rampart One Regular"
         ]
         
         for fontName in fontNames {
@@ -199,7 +250,7 @@ struct StartView: View {
         }
         
         // Fallback на системный шрифт
-        return .system(size: size, weight: .bold)
+        return .system(size: size, weight: .regular)
     }
     
     /// Создает шрифт Druk XXCondensed Cyr Super для названия
@@ -223,6 +274,7 @@ struct StartView: View {
         // Fallback на системный шрифт
         return .system(size: size, weight: .regular)
     }
+    
     
     /// Создает шрифт Helvetica Neue для подзаголовка
     private func helveticaNeueFont(size: CGFloat) -> Font {
@@ -266,17 +318,51 @@ struct StartView: View {
         return .system(size: size, weight: .medium)
     }
     
+    /// Создает шрифт Druk Wide Cyr Medium для кнопок
+    private func drukWideCyrMediumFont(size: CGFloat) -> Font {
+        let fontNames = [
+            "Druk Wide Cyr Medium",
+            "DrukWideCyr-Medium",
+            "DrukWideCyrMedium",
+            "Druk Wide Cyr Medium Regular",
+            "DrukWideCyrMedium-Regular",
+            "Druk Wide Cyr",
+            "DrukWideCyr",
+            "Druk Wide Cyr Regular",
+            "DrukWideCyr-Regular"
+        ]
+        
+        for fontName in fontNames {
+            if UIFont(name: fontName, size: size) != nil {
+                return .custom(fontName, size: size)
+            }
+        }
+        
+        // Fallback на системный шрифт
+        return .system(size: size, weight: .medium)
+    }
+    
     /// Масштабирует значение относительно базового размера экрана
     /// Для горизонтальных значений использует ширину, для вертикальных - высоту
     private func scaledValue(_ value: CGFloat, for geometry: GeometryProxy, isVertical: Bool = false) -> CGFloat {
         let scaleFactor: CGFloat
-        if isVertical {
-            // Для вертикальных отступов используем высоту с учетом safe zone
-            // geometry.size уже учитывает safe area в GeometryReader
-            scaleFactor = geometry.size.height / DesignConstants.StartScreen.baseScreenHeight
+        // Если значение относится к CoinsScreen (кнопки), используем его базовые размеры
+        if value == DesignConstants.CoinsScreen.Spacing.buttonToBottom || 
+           value == DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding {
+            if isVertical {
+                scaleFactor = geometry.size.height / DesignConstants.CoinsScreen.baseScreenHeight
+            } else {
+                scaleFactor = geometry.size.width / DesignConstants.CoinsScreen.baseScreenWidth
+            }
         } else {
-            // Для горизонтальных отступов используем ширину
-            scaleFactor = geometry.size.width / DesignConstants.StartScreen.baseScreenWidth
+            if isVertical {
+                // Для вертикальных отступов используем высоту с учетом safe zone
+                // geometry.size уже учитывает safe area в GeometryReader
+                scaleFactor = geometry.size.height / DesignConstants.StartScreen.baseScreenHeight
+            } else {
+                // Для горизонтальных отступов используем ширину
+                scaleFactor = geometry.size.width / DesignConstants.StartScreen.baseScreenWidth
+            }
         }
         return value * scaleFactor
     }
@@ -297,14 +383,38 @@ struct StartView: View {
     /// В Figma макет 660×1434 @1x, используем минимальный коэффициент для сохранения пропорций
     /// Это гарантирует, что шрифты не будут слишком большими на узких экранах
     private func scaledFontSize(_ size: CGFloat, for geometry: GeometryProxy) -> CGFloat {
-        // Вычисляем коэффициенты масштабирования по ширине и высоте
-        let widthScaleFactor = geometry.size.width / DesignConstants.StartScreen.baseScreenWidth
-        let heightScaleFactor = geometry.size.height / DesignConstants.StartScreen.baseScreenHeight
+        // Если размер относится к CoinsScreen (кнопки), используем его базовые размеры
+        let widthScaleFactor: CGFloat
+        let heightScaleFactor: CGFloat
+        
+        if size == DesignConstants.CoinsScreen.Typography.buttonTextSize {
+            widthScaleFactor = geometry.size.width / DesignConstants.CoinsScreen.baseScreenWidth
+            heightScaleFactor = geometry.size.height / DesignConstants.CoinsScreen.baseScreenHeight
+        } else {
+            widthScaleFactor = geometry.size.width / DesignConstants.StartScreen.baseScreenWidth
+            heightScaleFactor = geometry.size.height / DesignConstants.StartScreen.baseScreenHeight
+        }
         
         // Используем минимальный коэффициент для сохранения пропорций макета
         // Это гарантирует, что шрифты будут соответствовать пропорциям исходного макета
         let scaleFactor = min(widthScaleFactor, heightScaleFactor)
         
         return size * scaleFactor
+    }
+}
+
+// Кастомный стиль кнопки, который делает кнопку красной при нажатии
+struct RedTapButtonStyle: ButtonStyle {
+    let isTapped: Bool
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundColor(
+                configuration.isPressed || isTapped 
+                    ? DesignConstants.StartScreen.Colors.titleRed 
+                    : DesignConstants.StartScreen.Colors.buttonBlue
+            )
+            .opacity(1.0) // Убираем изменение прозрачности
+            .scaleEffect(1.0) // Убираем изменение размера
     }
 }

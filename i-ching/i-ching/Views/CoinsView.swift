@@ -1,22 +1,19 @@
 import SwiftUI
 
 struct CoinsView: View {
+    @EnvironmentObject var navigationManager: NavigationManager
     let question: String?
     @State private var currentThrow: Int = 0
     @State private var lines: [Line] = []
     @State private var coins: [Bool] = [Bool.random(), Bool.random(), Bool.random()]
-    @State private var showHexagram = false
     @State private var isThrowing = false
+    @Environment(\.dismiss) var dismiss
     
     private let totalThrows = 6
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Фон
-                DesignConstants.CoinsScreen.Colors.backgroundBeige
-                    .ignoresSafeArea()
-                
                 // Гексаграмма - отдельный фрейм, зафиксирована сверху
                 VStack {
                     Spacer()
@@ -35,10 +32,17 @@ struct CoinsView: View {
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .allowsHitTesting(false)
                 
-                // Монеты и счетчик - отдельный фрейм, центрированы по вертикали
+                // Анимация руки - абсолютное позиционирование
+                if currentThrow < totalThrows {
+                    HandAnimationView(isThrowing: isThrowing, geometry: geometry)
+                }
+                
+                // Монеты и счетчик - отдельный фрейм, зафиксированы относительно гексаграммы
                 if currentThrow < totalThrows {
                     VStack(spacing: 0) {
+                        // Отступ от верха до монет: 360 (до гексаграммы) + 100 (высота гексаграммы) + 160 (от гексаграммы до монет) = 620
                         Spacer()
+                            .frame(height: scaledValue(DesignConstants.CoinsScreen.Spacing.topToHexagram + DesignConstants.CoinsScreen.Sizes.hexagramTotalHeight + DesignConstants.CoinsScreen.Spacing.hexagramToCircles, for: geometry, isVertical: true))
                         
                         // Три круга с иероглифами и монетами
                         HStack(spacing: scaledValue(DesignConstants.CoinsScreen.Spacing.betweenCircles, for: geometry)) {
@@ -79,48 +83,37 @@ struct CoinsView: View {
                         Spacer()
                             .frame(height: scaledValue(DesignConstants.CoinsScreen.Spacing.circlesToCounter, for: geometry, isVertical: true))
                         
-                        // Счетчик "1/6"
-                        Text("\(currentThrow + 1)/\(totalThrows)")
-                            .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.counterTextSize, for: geometry)))
+                        // Счетчик "0/6" (показывает количество выполненных бросков)
+                        Text("\(currentThrow)/\(totalThrows)")
+                            .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.counterTextSize, for: geometry)))
                             .foregroundColor(DesignConstants.CoinsScreen.Colors.counterTextColor)
+                            .lineSpacing(scaledValue(DesignConstants.CoinsScreen.Typography.counterLineHeight - DesignConstants.CoinsScreen.Typography.counterTextSize, for: geometry, isVertical: true))
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, scaledValue(DesignConstants.CoinsScreen.Spacing.counterHorizontalPadding, for: geometry))
+                        
+                        // Отступ от счетчика до кнопки
+                        Spacer()
+                            .frame(height: scaledValue(DesignConstants.CoinsScreen.Spacing.counterToButton, for: geometry, isVertical: true))
+                        
+                        // Кнопка "БРОСИТЬ МОНЕТЫ"
+                        if currentThrow < totalThrows {
+                            Button(action: {
+                                throwCoins()
+                            }) {
+                                Text("БРОСИТЬ МОНЕТЫ")
+                                    .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                    .foregroundColor(DesignConstants.CoinsScreen.Colors.buttonTextColor)
+                                    .padding(.horizontal, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonHorizontalPadding, for: geometry))
+                                    .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
+                            }
+                            .disabled(isThrowing)
+                            .frame(maxWidth: .infinity)
+                        }
                         
                         Spacer()
                     }
                     .frame(width: geometry.size.width, height: geometry.size.height)
                 }
-                
-                // Кнопка "БРОСИТЬ МОНЕТЫ" внизу
-                VStack {
-                    Spacer()
-                    
-                    if currentThrow < totalThrows {
-                        Button(action: {
-                            throwCoins()
-                        }) {
-                            Text("БРОСИТЬ МОНЕТЫ")
-                                .font(drukWideCyrMediumFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
-                                .foregroundColor(DesignConstants.CoinsScreen.Colors.buttonTextColor)
-                                .padding(.horizontal, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonHorizontalPadding, for: geometry))
-                                .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
-                        }
-                        .disabled(isThrowing)
-                        .frame(maxWidth: .infinity)
-                        .padding(.bottom, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonToBottom, for: geometry, isVertical: true))
-                    }
-                }
-            }
-        }
-        .fullScreenCover(isPresented: $showHexagram) {
-            if let hexagram = Hexagram.find(byLines: lines) {
-                HexagramView(hexagram: hexagram, lines: lines, question: question)
-                    .transition(.opacity)
-            } else {
-                // Fallback на первую гексаграмму, если не найдена
-                let fallback = Hexagram.loadAll().first!
-                HexagramView(hexagram: fallback, lines: lines, question: question)
-                    .transition(.opacity)
             }
         }
     }
@@ -178,7 +171,13 @@ struct CoinsView: View {
             if currentThrow >= totalThrows {
                 // Ждём завершения анимации появления последней линии, затем показываем экран гексаграммы
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    showHexagram = true
+                    if let hexagram = Hexagram.find(byLines: lines) {
+                        navigationManager.navigate(to: .hexagram(hexagram: hexagram, lines: lines, question: question))
+                    } else {
+                        // Fallback на первую гексаграмму, если не найдена
+                        let fallback = Hexagram.loadAll().first!
+                        navigationManager.navigate(to: .hexagram(hexagram: fallback, lines: lines, question: question))
+                    }
                 }
             }
             
@@ -231,6 +230,45 @@ struct CoinsView: View {
         
         // Fallback на системный шрифт
         return .system(size: size, weight: .medium)
+    }
+    
+    /// Создает шрифт Helvetica Neue Light
+    private func helveticaNeueLightFont(size: CGFloat) -> Font {
+        let fontNames = [
+            "Helvetica Neue Light",
+            "HelveticaNeue-Light",
+            "HelveticaNeueLight",
+            "Helvetica Neue",
+            "HelveticaNeue"
+        ]
+        
+        for fontName in fontNames {
+            if UIFont(name: fontName, size: size) != nil {
+                return .custom(fontName, size: size)
+            }
+        }
+        
+        return .system(size: size, weight: .light)
+    }
+    
+    /// Создает шрифт Roboto Mono Light
+    private func robotoMonoLightFont(size: CGFloat) -> Font {
+        let fontNames = [
+            "Roboto Mono Light",
+            "RobotoMono-Light",
+            "RobotoMonoLight",
+            "RobotoMono-VariableFont_wght",
+            "Roboto Mono",
+            "RobotoMono"
+        ]
+        
+        for fontName in fontNames {
+            if UIFont(name: fontName, size: size) != nil {
+                return .custom(fontName, size: size)
+            }
+        }
+        
+        return .system(size: size, weight: .light, design: .monospaced)
     }
     
     /// Создает шрифт Roboto Mono Thin
@@ -361,14 +399,14 @@ struct LineView: View {
                     .resizable()
                     .renderingMode(.template)
                     .foregroundColor(lineColor())
-                    .frame(width: lineLength(), height: lineThickness())
+                    .frame(width: lineLength(), height: lineThickness(), alignment: .center)
             } else {
                 // Прерывистая линия (инь)
                 Image("Line_s")
                     .resizable()
                     .renderingMode(.template)
                     .foregroundColor(lineColor())
-                    .frame(width: lineLength(), height: lineThickness())
+                    .frame(width: lineLength(), height: lineThickness(), alignment: .center)
             }
         }
     }
