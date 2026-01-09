@@ -10,7 +10,7 @@ enum Screen: Hashable {
     case result(hexagram: Hexagram, lines: [Line], question: String?)
     case dailySign
     case history
-    case tutorial
+    case tutorial(entryPoint: TutorialEntryPoint)
     
     /// Создает соответствующий View для экрана
     @ViewBuilder
@@ -30,8 +30,8 @@ enum Screen: Hashable {
             DailySignView(resetForTesting: false)
         case .history:
             HistoryView()
-        case .tutorial:
-            TutorialViewWrapper()
+        case .tutorial(let entryPoint):
+            TutorialViewWrapper(entryPoint: entryPoint)
         }
     }
 }
@@ -73,22 +73,27 @@ class NavigationManager: ObservableObject {
 /// Wrapper для TutorialView, который работает через NavigationManager
 struct TutorialViewWrapper: View {
     @EnvironmentObject var navigationManager: NavigationManager
+    @EnvironmentObject var musicService: BackgroundMusicService
     @State private var isPresented = true
+    let entryPoint: TutorialEntryPoint
     
     var body: some View {
-        TutorialView(isPresented: Binding(
-            get: { isPresented },
-            set: { newValue in
-                isPresented = newValue
-                if !newValue {
-                    // Используем небольшое задержку, чтобы дать TutorialView завершить свою анимацию
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+        TutorialView(
+            isPresented: Binding(
+                get: { isPresented },
+                set: { newValue in
+                    if !newValue {
+                        // Возвращаемся на стартовый экран через NavigationManager
+                        // Анимация cross fade будет применена автоматически в ContentView
                         navigationManager.popToRoot()
                     }
+                    isPresented = newValue
                 }
-            }
-        ))
+            ),
+            entryPoint: entryPoint
+        )
         .environmentObject(navigationManager)
+        .environmentObject(musicService)
     }
 }
 

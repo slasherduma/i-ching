@@ -1,10 +1,18 @@
 import SwiftUI
 import UIKit
 
+enum TutorialEntryPoint: Hashable {
+    case firstLaunch
+    case fromMenu
+}
+
 struct TutorialView: View {
     @EnvironmentObject var navigationManager: NavigationManager
+    @EnvironmentObject var musicService: BackgroundMusicService
+    @AppStorage("hasSeenTutorial") private var hasSeenTutorial: Bool = false
     @State private var currentPage: Int = 0
     @Binding var isPresented: Bool
+    let entryPoint: TutorialEntryPoint
     
     private let pages: [TutorialPage] = [
         TutorialPage(
@@ -129,15 +137,20 @@ struct TutorialView: View {
                 .frame(width: geometry.size.width, alignment: .center)
             }
             .overlay(alignment: .top) {
-                MenuBarView(geometry: geometry, onDismiss: { isPresented = false })
-                    .environmentObject(navigationManager)
+                if entryPoint == .firstLaunch {
+                    StartMenuBarView(geometry: geometry, customCenterText: "ТУТОРИАЛ")
+                        .environmentObject(musicService)
+                } else {
+                    MenuBarView(geometry: geometry, onDismiss: { isPresented = false })
+                        .environmentObject(navigationManager)
+                }
             }
             .overlay(alignment: .bottom) {
                 VStack(spacing: 0) {
                     // Счетчик страниц над кнопками с отступом 320px
                     VStack(spacing: scaledValue(8, for: geometry, isVertical: true)) {
                         Text("\(currentPage + 1)/\(pages.count)")
-                            .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
+                            .font(robotoMonoLightFont(size: scaledFontSize(24, for: geometry)))
                             .foregroundColor(DesignConstants.TutorialScreen.Colors.textBlue)
                             .frame(maxWidth: .infinity)
                         
@@ -204,12 +217,9 @@ struct TutorialView: View {
             }
             .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ReturnToStartView"))) { _ in
                 // Закрываем экран при получении уведомления о возврате на стартовый экран
-                // Используем transaction без анимации для мгновенного закрытия
-                var transaction = Transaction(animation: .none)
-                transaction.disablesAnimations = true
-                withTransaction(transaction) {
-                    isPresented = false
-                }
+                // Используем стандартную анимацию cross fade через NavigationManager
+                markTutorialAsSeen()
+                isPresented = false
             }
             .gesture(
                 DragGesture(minimumDistance: 30, coordinateSpace: .local)
@@ -371,7 +381,7 @@ struct TutorialView: View {
     }
     
     private func markTutorialAsSeen() {
-        UserDefaults.standard.set(true, forKey: "hasSeenTutorial")
+        hasSeenTutorial = true
     }
 }
 

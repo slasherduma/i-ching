@@ -3,11 +3,9 @@ import UIKit
 
 struct StartView: View {
     @EnvironmentObject var navigationManager: NavigationManager
+    @EnvironmentObject var musicService: BackgroundMusicService
+    @AppStorage("hasSeenTutorial") private var hasSeenTutorial: Bool = false
     @State private var tappedButtonId: String? = nil
-    
-    private var hasSeenTutorial: Bool {
-        UserDefaults.standard.bool(forKey: "hasSeenTutorial")
-    }
     
     // Computed properties для цветов кнопок
     private var questionButtonColor: Color {
@@ -43,116 +41,30 @@ struct StartView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            VStack(spacing: 0) {
-                    // Верхний отступ до иероглифов (вертикальный отступ - используем высоту)
-                    Spacer()
-                        .frame(height: scaledValue(DesignConstants.StartScreen.Spacing.topToChineseCharacters, for: geometry, isVertical: true))
-                    
-                    // Иероглифы 乾 и 坤 сверху с надписью И-ЦЗИН между ними и КНИГА ПЕРЕМЕН под ней
-                    HStack(spacing: 0) {
-                        Text("乾")
-                            .font(rampartOneFont(size: scaledFontSize(DesignConstants.StartScreen.Typography.chineseCharactersSize, for: geometry)))
-                            .foregroundColor(DesignConstants.StartScreen.Colors.titleRed)
-                        
-                        // Отступ 20px от иероглифа до "И-ЦЗИН"
+            let verticalScaleFactor = geometry.size.height / DesignConstants.StartScreen.baseScreenHeight
+            let horizontalScaleFactor = geometry.size.width / DesignConstants.StartScreen.baseScreenWidth
+            let dragonsHeight = DesignConstants.StartScreen.Spacing.dragonsHeight * verticalScaleFactor
+            let dragonsWidth = DesignConstants.StartScreen.Spacing.dragonsWidth * horizontalScaleFactor
+            
+            ZStack(alignment: .bottom) {
+                VStack(spacing: 0) {
+                        // Отступ 220pt от верха экрана
                         Spacer()
-                            .frame(width: scaledValue(20, for: geometry))
+                            .frame(height: geometry.safeAreaInsets.top + 220)
                         
-                        // VStack для "И-ЦЗИН" и "КНИГА ПЕРЕМЕН" - используем overlay для точного позиционирования
-                        ZStack(alignment: .top) {
-                            Text("И-ЦЗИН")
-                                .font(drukXXCondensedFont(size: scaledFontSize(DesignConstants.StartScreen.Typography.mainTitleSize, for: geometry)))
-                                .foregroundColor(DesignConstants.StartScreen.Colors.titleRed)
-                                .lineLimit(1)
-                            
-                            Text("КНИГА ПЕРЕМЕН")
-                                .font(drukXXCondensedFont(size: scaledFontSize(42, for: geometry))) // Увеличено для соответствия отступам "И-ЦЗИН"
-                                .tracking(scaledFontSize(42, for: geometry) * 0.07) // Увеличение расстояния между буквами на 7%
-                                .foregroundColor(DesignConstants.StartScreen.Colors.titleRed)
-                                .lineLimit(1)
-                                .offset(y: scaledFontSize(DesignConstants.StartScreen.Typography.mainTitleSize, for: geometry) + scaledValue(2.5, for: geometry, isVertical: true))
-                        }
-                        
-                        // Отступ 20px от "И-ЦЗИН" до иероглифа
+                        // Отступ до кнопок (заполняет пространство над картинкой)
                         Spacer()
-                            .frame(width: scaledValue(20, for: geometry))
                         
-                        Text("坤")
-                            .font(rampartOneFont(size: scaledFontSize(DesignConstants.StartScreen.Typography.chineseCharactersSize, for: geometry)))
-                            .foregroundColor(DesignConstants.StartScreen.Colors.titleRed)
-                    }
-                    .padding(.horizontal, scaledValue(DesignConstants.StartScreen.Spacing.chineseCharactersHorizontalPadding, for: geometry))
-                    .frame(maxWidth: .infinity)
-                    
-                    // Минимальный отступ от "КНИГА ПЕРЕМЕН" до драконов
-                    // Убираем большой отступ, чтобы поднять драконы
-                    Spacer()
-                        .frame(height: scaledValue(10, for: geometry, isVertical: true))
-                    
-                    // Драконы - центрируем по горизонтали с отступами 80px слева и справа
-                    // При размере холста 660px ширина драконов = 660 - 160 (80*2) = 500px
-                    let horizontalScaleFactor = geometry.size.width / DesignConstants.StartScreen.baseScreenWidth
-                    let verticalScaleFactor = geometry.size.height / DesignConstants.StartScreen.baseScreenHeight
-                    let dragonsWidth = (DesignConstants.StartScreen.baseScreenWidth - 160) * horizontalScaleFactor // 660 - 160 = 500px
-                    let dragonsHeight = DesignConstants.StartScreen.Spacing.dragonsHeight * verticalScaleFactor
-                    
-                    HStack {
-                        // Отступ слева 80px
-                        Spacer()
-                            .frame(width: scaledValue(80, for: geometry))
-                        
-                        Group {
-                            if let uiImage = UIImage(named: "dragons-hero") {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: dragonsWidth, height: dragonsHeight)
-                                    .clipped()
-                            } else if let url = Bundle.main.url(forResource: "dragons-hero", withExtension: "svg"),
-                                      let image = UIImage(contentsOfFile: url.path) {
-                                Image(uiImage: image)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: dragonsWidth, height: dragonsHeight)
-                                    .clipped()
-                            } else {
-                                // Заглушка для отладки
-                                Rectangle()
-                                    .fill(Color.red.opacity(0.2))
-                                    .frame(width: dragonsWidth, height: dragonsHeight)
-                                    .overlay(
-                                        VStack {
-                                            Text("dragons-hero не найден")
-                                                .font(.caption)
-                                                .foregroundColor(.red)
-                                            Text("Добавьте в Assets.xcassets")
-                                                .font(.caption2)
-                                                .foregroundColor(.gray)
-                                        }
-                                    )
-                            }
-                        }
-                        
-                        // Отступ справа 80px
-                        Spacer()
-                            .frame(width: scaledValue(80, for: geometry))
-                    }
-                    
-                    // Отступ от драконов до первой кнопки (190px - 100px = 90px, чтобы поднять кнопки на 100px вверх)
-                    Spacer()
-                        .frame(height: scaledValue(DesignConstants.StartScreen.Spacing.dragonsToFirstButton - 100, for: geometry, isVertical: true))
-                    
-                    // Кнопки
-                    VStack(spacing: scaledValue(DesignConstants.StartScreen.Spacing.buttonSpacing, for: geometry, isVertical: true)) {
+                        // Кнопки
+                        VStack(spacing: scaledValue(20, for: geometry, isVertical: true)) {
                         Button(action: withButtonSound {
                             handleButtonTap(buttonId: "question") {
                                 navigationManager.navigate(to: .question)
                             }
                         }) {
                             Text("СДЕЛАТЬ РАСКЛАД")
-                                .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .font(robotoMonoLightFont(size: scaledFontSize(24, for: geometry)))
                                 .foregroundColor(DesignConstants.StartScreen.Colors.buttonTextColor)
-                                .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(RedTapButtonStyle(isTapped: tappedButtonId == "question"))
@@ -163,9 +75,8 @@ struct StartView: View {
                             }
                         }) {
                             Text("ЗНАК ДНЯ")
-                                .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .font(robotoMonoLightFont(size: scaledFontSize(24, for: geometry)))
                                 .foregroundColor(DesignConstants.StartScreen.Colors.buttonTextColor)
-                                .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(RedTapButtonStyle(isTapped: tappedButtonId == "question"))
@@ -176,9 +87,8 @@ struct StartView: View {
                             }
                         }) {
                             Text("ДНЕВНИК ПРЕДСКАЗАНИЙ")
-                                .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .font(robotoMonoLightFont(size: scaledFontSize(24, for: geometry)))
                                 .foregroundColor(DesignConstants.StartScreen.Colors.buttonTextColor)
-                                .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
                                 .frame(maxWidth: .infinity)
                                 .multilineTextAlignment(.center)
                         }
@@ -186,13 +96,12 @@ struct StartView: View {
                         
                         Button(action: withButtonSound {
                             handleButtonTap(buttonId: "tutorial") {
-                                navigationManager.navigate(to: .tutorial)
+                                navigationManager.navigate(to: .tutorial(entryPoint: .fromMenu))
                             }
                         }) {
                             Text("ПОМОЩЬ")
-                                .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                                .font(robotoMonoLightFont(size: scaledFontSize(24, for: geometry)))
                                 .foregroundColor(DesignConstants.StartScreen.Colors.buttonTextColor)
-                                .padding(.vertical, scaledValue(DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding, for: geometry, isVertical: true))
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(RedTapButtonStyle(isTapped: tappedButtonId == "question"))
@@ -202,13 +111,60 @@ struct StartView: View {
                     // Нижний отступ (вертикальный)
                     Spacer()
                         .frame(height: scaledValue(DesignConstants.StartScreen.Spacing.lastButtonToBottom, for: geometry, isVertical: true))
+                }
+                
+                // Hero area - позиционируется на расстоянии 468pt от низа
+                HStack(spacing: 0) {
+                    Spacer()
+                        .frame(width: scaledValue(48, for: geometry))
+                    
+                    VStack(spacing: 0) {
+                        Spacer()
+                        
+                        Image("dragons-hero")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: dragonsWidth)
+                            .frame(maxHeight: .infinity, alignment: .bottom)
+                    }
+                    .frame(width: dragonsWidth, height: dragonsHeight, alignment: .bottom)
+                    .clipped()
+                    
+                    Spacer()
+                        .frame(width: scaledValue(48, for: geometry))
+                }
+                .padding(.bottom, scaledValue(440, for: geometry, isVertical: true) + geometry.safeAreaInsets.bottom)
+                .offset(y: scaledValue(10, for: geometry, isVertical: true))
+                
+                // Нижние надписи - позиционируются от самого низа экрана
+                VStack {
+                    Spacer()
+                    HStack {
+                        // Левая надпись "i_ching_ver.1.0"
+                        Text("i_ching_ver.1.0")
+                            .font(robotoMonoLightFont(size: scaledFontSize(24, for: geometry)))
+                            .foregroundColor(DesignConstants.StartScreen.Colors.buttonBlue)
+                            .padding(.leading, scaledValue(48, for: geometry))
+                        Spacer()
+                        // Правая надпись "made in France"
+                        Text("made in France")
+                            .font(robotoMonoLightFont(size: scaledFontSize(24, for: geometry)))
+                            .foregroundColor(DesignConstants.StartScreen.Colors.buttonBlue)
+                            .padding(.trailing, scaledValue(40, for: geometry))
+                    }
+                    .padding(.bottom, scaledValue(80, for: geometry, isVertical: true) - geometry.safeAreaInsets.bottom)
+                }
+            }
+            .overlay(alignment: .top) {
+                StartMenuBarView(geometry: geometry)
+                    .environmentObject(musicService)
             }
         }
         .onAppear {
-            // Показываем туториал при первом запуске
+            // Показываем туториал при первом запуске через NavigationManager для cross fade анимации
             if !hasSeenTutorial {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    navigationManager.navigate(to: .tutorial)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    navigationManager.navigate(to: .tutorial(entryPoint: .firstLaunch))
                 }
             }
         }
