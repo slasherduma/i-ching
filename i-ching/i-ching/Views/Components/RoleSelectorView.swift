@@ -34,14 +34,14 @@ struct RoleSelectorView: View {
             // Кнопки выбора роли
             HStack(alignment: .center, spacing: scaledValue(DesignConstants.InterpretationScreen.Spacing.roleButtonsSpacing, for: geometry, isVertical: false)) {
                 ForEach(UserRole.allCases, id: \.self) { role in
-                    Button(action: {
+                    Button(action: withButtonSound {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             selectedRole = role
                         }
                     }) {
-                        Text(role.shortName)
-                            .font(helveticaNeueLightFont(size: scaledFontSize(36, for: geometry)))
-                            .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue)
+                        Text(role.shortName.uppercased())
+                            .font(robotoMonoLightFont(size: scaledFontSize(36, for: geometry)))
+                            .foregroundColor(DesignConstants.InterpretationScreen.Colors.buttonTextColor)
                             .opacity(selectedRole == role ? 1.0 : 0.5)
                     }
                 }
@@ -71,6 +71,25 @@ struct RoleSelectorView: View {
         }
         
         return .system(size: size, weight: .ultraLight, design: .monospaced)
+    }
+    
+    private func robotoMonoLightFont(size: CGFloat) -> Font {
+        let fontNames = [
+            "Roboto Mono Light",
+            "RobotoMono-Light",
+            "RobotoMonoLight",
+            "RobotoMono-VariableFont_wght",
+            "Roboto Mono",
+            "RobotoMono"
+        ]
+        
+        for fontName in fontNames {
+            if UIFont(name: fontName, size: size) != nil {
+                return .custom(fontName, size: size)
+            }
+        }
+        
+        return .system(size: size, weight: .light, design: .monospaced)
     }
     
     private func helveticaNeueLightFont(size: CGFloat) -> Font {

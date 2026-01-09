@@ -8,6 +8,9 @@ enum Screen: Hashable {
     case hexagram(hexagram: Hexagram, lines: [Line], question: String?)
     case interpretation(hexagram: Hexagram, lines: [Line], question: String?, secondHexagram: Hexagram?)
     case result(hexagram: Hexagram, lines: [Line], question: String?)
+    case dailySign
+    case history
+    case tutorial
     
     /// Создает соответствующий View для экрана
     @ViewBuilder
@@ -23,6 +26,12 @@ enum Screen: Hashable {
             InterpretationView(hexagram: hexagram, lines: lines, question: question, secondHexagram: secondHexagram)
         case .result(let hexagram, let lines, let question):
             ResultView(hexagram: hexagram, lines: lines, question: question)
+        case .dailySign:
+            DailySignView(resetForTesting: false)
+        case .history:
+            HistoryView()
+        case .tutorial:
+            TutorialViewWrapper()
         }
     }
 }
@@ -44,26 +53,42 @@ class NavigationManager: ObservableObject {
     
     /// Переход на указанный экран
     func navigate(to screen: Screen) {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            screens.append(screen)
-        }
+        screens.append(screen)
     }
     
     /// Возврат к корневому экрану (StartView)
     func popToRoot() {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            screens.removeAll()
-            currentHexagramLines = [] // Очищаем гексограмму при возврате на StartView
-        }
+        screens.removeAll()
+        currentHexagramLines = [] // Очищаем гексограмму при возврате на StartView
     }
     
     /// Возврат на один экран назад
     func pop() {
         if !screens.isEmpty {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                screens.removeLast()
-            }
+            screens.removeLast()
         }
+    }
+}
+
+/// Wrapper для TutorialView, который работает через NavigationManager
+struct TutorialViewWrapper: View {
+    @EnvironmentObject var navigationManager: NavigationManager
+    @State private var isPresented = true
+    
+    var body: some View {
+        TutorialView(isPresented: Binding(
+            get: { isPresented },
+            set: { newValue in
+                isPresented = newValue
+                if !newValue {
+                    // Используем небольшое задержку, чтобы дать TutorialView завершить свою анимацию
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                        navigationManager.popToRoot()
+                    }
+                }
+            }
+        ))
+        .environmentObject(navigationManager)
     }
 }
 

@@ -68,7 +68,7 @@ struct BottomBar {
         textColor: Color = DesignConstants.CoinsScreen.Colors.buttonTextColor
     ) -> some View {
         let buttonHeight = scaledValue(DesignConstants.CoinsScreen.Sizes.buttonHeight, for: geometry, isVertical: true)
-        let button = Button(action: action) {
+        let button = Button(action: withButtonSound(action)) {
             Text(title)
                 .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
                 .foregroundColor(textColor)
@@ -122,6 +122,7 @@ struct BottomBar {
             .opacity(leftIsDisabled ? 0.4 : 1.0)
             .onTapGesture {
                 if !leftIsDisabled {
+                    ButtonSoundService.shared.playRandomSound()
                     leftAction()
                 }
             }
@@ -141,6 +142,7 @@ struct BottomBar {
             .opacity(rightIsDisabled ? 0.4 : 1.0)
             .onTapGesture {
                 if !rightIsDisabled {
+                    ButtonSoundService.shared.playRandomSound()
                     rightAction()
                 }
             }

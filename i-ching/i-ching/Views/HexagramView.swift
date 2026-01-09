@@ -17,22 +17,20 @@ struct HexagramView: View {
                         .frame(height: scaledValue(DesignConstants.HexagramScreen.Spacing.topToCurrentStateTitle, for: geometry, isVertical: true))
                     
                     // Заголовок "Текущее состояние"
-                    Text("Текущее состояние")
-                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.currentStateTitleSize, for: geometry)))
+                    Text("Текущее состояние".uppercased())
+                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.currentStateTitleSize, for: geometry)))
                         .foregroundColor(DesignConstants.HexagramScreen.Colors.textBlue)
                         .frame(maxWidth: .infinity)
                     
                     // Отступ от "Текущее состояние" до первой гексограммы
                     // ВАЖНО: гексограмма должна быть на 360px от верха (как на CoinsScreen)
+                    // Текст "Текущее состояние" должен быть на 80px над верхней гексаграммой
                     // Используем CoinsScreen.topToHexagram для идентичного масштабирования
-                    let titleTop = scaledValue(DesignConstants.HexagramScreen.Spacing.topToCurrentStateTitle, for: geometry, isVertical: true)
-                    let titleFontSize = scaledFontSize(DesignConstants.HexagramScreen.Typography.currentStateTitleSize, for: geometry)
-                    // Используем CoinsScreen.topToHexagram для гарантии идентичного позиционирования
                     let hexagramTop = scaledValue(DesignConstants.CoinsScreen.Spacing.topToHexagram, for: geometry, isVertical: true)
-                    let spacingNeeded = hexagramTop - titleTop - titleFontSize
+                    let fixedSpacing = scaledValue(80, for: geometry, isVertical: true) // 80px над гексаграммой
                     
                     Spacer()
-                        .frame(height: max(0, spacingNeeded))
+                        .frame(height: max(0, fixedSpacing))
                     
                     // Гексограмма теперь отображается через overlay в ContentView
                     // Здесь оставляем пустое пространство для правильного позиционирования остальных элементов
@@ -50,9 +48,9 @@ struct HexagramView: View {
                     Spacer()
                         .frame(height: scaledValue(DesignConstants.HexagramScreen.Spacing.hexagramToLabel, for: geometry, isVertical: true))
                     
-                    // "Гексограмма X: ..."
-                    Text("Гексограмма \(hexagram.number): \(hexagram.name.uppercased())")
-                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.hexagramLabelSize, for: geometry)))
+                    // Формат: 53 — ПОСТЕПЕННОСТЬ
+                    Text("\(hexagram.number) — \(hexagram.name.uppercased())")
+                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.hexagramLabelSize, for: geometry)))
                         .foregroundColor(DesignConstants.HexagramScreen.Colors.textBlue)
                         .frame(maxWidth: .infinity)
                     
@@ -76,8 +74,8 @@ struct HexagramView: View {
                             .frame(height: scaledValue(DesignConstants.HexagramScreen.Spacing.interpretationToQuestion, for: geometry, isVertical: true))
                         
                         // Вопрос "Куда всё движется если ничего не менять"
-                        Text("Куда всё движется если ничего не менять")
-                            .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.questionSize, for: geometry)))
+                        Text("Куда всё движется если ничего не менять".uppercased())
+                            .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.questionSize, for: geometry)))
                             .foregroundColor(DesignConstants.HexagramScreen.Colors.textBlue)
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
@@ -105,18 +103,35 @@ struct HexagramView: View {
                         Spacer()
                             .frame(height: scaledValue(DesignConstants.HexagramScreen.Spacing.secondHexagramToLabel, for: geometry, isVertical: true))
                         
-                        // "Гексограмма 14: ..."
-                        Text("Гексограмма \(second.number): \(second.name.uppercased())")
-                            .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.hexagramLabelSize, for: geometry)))
+                        // Формат: 53 — ПОСТЕПЕННОСТЬ
+                        Text("\(second.number) — \(second.name.uppercased())")
+                            .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.hexagramLabelSize, for: geometry)))
                             .foregroundColor(DesignConstants.HexagramScreen.Colors.textBlue)
                             .frame(maxWidth: .infinity)
                         
-                        // Отступ от "Гексограмма 14: ..." до конца контента
+                        // Отступ от "Гексограмма 14: ..." до текста описания
+                        Spacer()
+                            .frame(height: scaledValue(DesignConstants.HexagramScreen.Spacing.labelToInterpretation, for: geometry, isVertical: true))
+                        
+                        // Текст описания (как у верхней гексограммы)
+                        Text(summaryText(for: second))
+                            .font(helveticaNeueThinFont(size: scaledFontSize(DesignConstants.HexagramScreen.Typography.interpretationSize, for: geometry)))
+                            .foregroundColor(DesignConstants.HexagramScreen.Colors.textBlue)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, scaledValue(DesignConstants.QuestionScreen.Spacing.contentHorizontalPadding, for: geometry))
+                        
+                        // Отступ от описания второй гексограммы до конца контента
                     }
                     
                     // Контент может быть любого размера
                     Spacer()
                 }
+            }
+            .overlay(alignment: .top) {
+                MenuBarView(geometry: geometry, onDismiss: { navigationManager.popToRoot() })
+                    .environmentObject(navigationManager)
             }
             .overlay(alignment: .bottom) {
                 BottomBar.primary(
@@ -153,16 +168,26 @@ struct HexagramView: View {
     }
     
     private var interpretationText: String {
+        summaryText(for: hexagram)
+    }
+
+    private func summaryText(for hexagram: Hexagram) -> String {
         // Используем generalStrategy, если есть, иначе keyPhrase, иначе interpretation (первые несколько предложений)
         if let generalStrategy = hexagram.generalStrategy {
             // Берем первое предложение из generalStrategy
-            let sentences = generalStrategy.components(separatedBy: ".").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            let sentences = generalStrategy
+                .components(separatedBy: ".")
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
             return sentences.first.map { $0 + "." } ?? generalStrategy
         } else if let keyPhrase = hexagram.keyPhrase {
             return keyPhrase
         } else {
             // Берем первое предложение из interpretation
-            let sentences = hexagram.interpretation.components(separatedBy: ".").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            let sentences = hexagram.interpretation
+                .components(separatedBy: ".")
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
             return sentences.first.map { $0 + "." } ?? hexagram.interpretation
         }
     }

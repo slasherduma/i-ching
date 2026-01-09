@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct HistoryView: View {
+    @EnvironmentObject var navigationManager: NavigationManager
     @State private var readings: [Reading] = []
     @State private var selectedReading: Reading?
     @State private var showDetail = false
-    @Environment(\.dismiss) var dismiss
     
     var body: some View {
         GeometryReader { geometry in
@@ -13,34 +13,6 @@ struct HistoryView: View {
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // Заголовок
-                    HStack {
-                        Button(action: {
-                            dismiss()
-                        }) {
-                            Text("Назад")
-                                .font(helveticaNeueLightFont(size: scaledFontSize(DesignConstants.HistoryScreen.Typography.backButtonSize, for: geometry)))
-                                .foregroundColor(DesignConstants.HistoryScreen.Colors.textBlue)
-                        }
-                        .padding(.leading, scaledValue(DesignConstants.HistoryScreen.Spacing.headerHorizontalPadding, for: geometry))
-                        
-                        Spacer()
-                        
-                        Text("Мой дневник")
-                            .font(helveticaNeueLightFont(size: scaledFontSize(DesignConstants.HistoryScreen.Typography.titleSize, for: geometry)))
-                            .foregroundColor(DesignConstants.HistoryScreen.Colors.textBlue)
-                        
-                        Spacer()
-                        
-                        // Заглушка для симметрии
-                        Text("Назад")
-                            .font(helveticaNeueLightFont(size: scaledFontSize(DesignConstants.HistoryScreen.Typography.backButtonSize, for: geometry)))
-                            .foregroundColor(.clear)
-                            .padding(.trailing, scaledValue(DesignConstants.HistoryScreen.Spacing.headerHorizontalPadding, for: geometry))
-                    }
-                    .padding(.top, scaledValue(DesignConstants.HistoryScreen.Spacing.headerTop, for: geometry, isVertical: true))
-                    .padding(.bottom, scaledValue(DesignConstants.HistoryScreen.Spacing.headerBottom, for: geometry, isVertical: true))
-                    
                     if readings.isEmpty {
                         Spacer()
                         Text("Пока нет сохраненных раскладов")
@@ -55,6 +27,7 @@ struct HistoryView: View {
                                     ReadingRow(reading: reading, dateFormatter: dateFormatter, geometry: geometry)
                                         .contentShape(Rectangle())
                                         .onTapGesture {
+                                            ButtonSoundService.shared.playRandomSound()
                                             selectedReading = reading
                                             showDetail = true
                                         }
@@ -62,11 +35,55 @@ struct HistoryView: View {
                                 }
                             }
                             .padding(.horizontal, scaledValue(DesignConstants.HistoryScreen.Spacing.horizontalPadding, for: geometry))
-                            .padding(.top, scaledValue(DesignConstants.HistoryScreen.Spacing.listTop, for: geometry, isVertical: true))
+                            .padding(.top, scaledValue(100, for: geometry, isVertical: true) + scaledValue(DesignConstants.HistoryScreen.Spacing.listTop, for: geometry, isVertical: true))
                             .padding(.bottom, scaledValue(DesignConstants.HistoryScreen.Spacing.listBottom, for: geometry, isVertical: true))
                         }
                     }
                 }
+                
+                // MenuBarView поверх контента
+                VStack {
+                    Spacer()
+                        .frame(height: scaledValueForMenuBar(DesignConstants.CoinsScreen.Spacing.topToMenu, for: geometry, isVertical: true) - geometry.safeAreaInsets.top)
+                    
+                    HStack {
+                        // Кнопка МЕНЮ слева
+                        Button(action: withButtonSound {
+                            navigationManager.popToRoot()
+                        }) {
+                            Text("МЕНЮ")
+                                .font(robotoMonoLightFontForMenuBar(size: scaledFontSizeForMenuBar(22, for: geometry)))
+                                .foregroundColor(DesignConstants.CoinsScreen.Colors.counterTextColor)
+                        }
+                        .padding(.leading, scaledValueForMenuBar(DesignConstants.CoinsScreen.Spacing.menuHorizontalPadding, for: geometry))
+                        
+                        Spacer()
+                        
+                        // Заголовок дневника
+                        Text("МОЙ ДНЕВНИК")
+                            .font(robotoMonoLightFontForMenuBar(size: scaledFontSizeForMenuBar(22, for: geometry)))
+                            .foregroundColor(DesignConstants.CoinsScreen.Colors.counterTextColor)
+                            .accessibilityLabel("Мой дневник")
+                        
+                        Spacer()
+                        
+                        // Кнопка ЗВУК справа (неактивна)
+                        Button(action: withButtonSound {
+                            // Пока неактивна
+                        }) {
+                            Text("ЗВУК")
+                                .font(robotoMonoLightFontForMenuBar(size: scaledFontSizeForMenuBar(22, for: geometry)))
+                                .foregroundColor(DesignConstants.CoinsScreen.Colors.counterTextColor)
+                        }
+                        .disabled(true)
+                        .padding(.trailing, scaledValueForMenuBar(DesignConstants.CoinsScreen.Spacing.menuHorizontalPadding, for: geometry))
+                    }
+                    .frame(maxWidth: .infinity)
+                    
+                    Spacer()
+                }
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .allowsHitTesting(true)
             }
         }
         .onAppear {
@@ -94,12 +111,7 @@ struct HistoryView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ReturnToStartView"))) { _ in
             // Закрываем экран при получении уведомления о возврате на стартовый экран
-            // Используем transaction без анимации для мгновенного закрытия
-            var transaction = Transaction(animation: .none)
-            transaction.disablesAnimations = true
-            withTransaction(transaction) {
-                dismiss()
-            }
+            navigationManager.popToRoot()
         }
     }
     
@@ -109,9 +121,7 @@ struct HistoryView: View {
     
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        formatter.locale = Locale(identifier: "ru_RU")
+        formatter.dateFormat = "dd/MM/yyyy h:mm a"
         return formatter
     }
     
@@ -136,17 +146,15 @@ struct HistoryView: View {
         return .system(size: size, weight: .light)
     }
     
-    /// Создает шрифт Roboto Mono Thin
-    private func robotoMonoThinFont(size: CGFloat) -> Font {
+    /// Создает шрифт Roboto Mono Light
+    private func robotoMonoLightFont(size: CGFloat) -> Font {
         let fontNames = [
-            "Roboto Mono",
-            "RobotoMono",
+            "Roboto Mono Light",
+            "RobotoMono-Light",
+            "RobotoMonoLight",
             "RobotoMono-VariableFont_wght",
-            "RobotoMono Variable",
-            "Roboto Mono Variable",
-            "Roboto Mono Thin",
-            "RobotoMono-Thin",
-            "RobotoMonoThin"
+            "Roboto Mono",
+            "RobotoMono"
         ]
         
         for fontName in fontNames {
@@ -155,7 +163,7 @@ struct HistoryView: View {
             }
         }
         
-        return .system(size: size, weight: .ultraLight, design: .monospaced)
+        return .system(size: size, weight: .light, design: .monospaced)
     }
     
     /// Масштабирует значение относительно базового размера экрана
@@ -174,6 +182,43 @@ struct HistoryView: View {
         let widthScaleFactor = geometry.size.width / DesignConstants.HistoryScreen.baseScreenWidth
         let heightScaleFactor = geometry.size.height / DesignConstants.HistoryScreen.baseScreenHeight
         let scaleFactor = min(widthScaleFactor, heightScaleFactor)
+        return size * scaleFactor
+    }
+    
+    /// Создает шрифт Roboto Mono Light (для MenuBar)
+    private func robotoMonoLightFontForMenuBar(size: CGFloat) -> Font {
+        let fontNames = [
+            "Roboto Mono Light",
+            "RobotoMono-Light",
+            "RobotoMonoLight",
+            "RobotoMono-VariableFont_wght",
+            "Roboto Mono",
+            "RobotoMono"
+        ]
+        
+        for fontName in fontNames {
+            if UIFont(name: fontName, size: size) != nil {
+                return .custom(fontName, size: size)
+            }
+        }
+        
+        return .system(size: size, weight: .light, design: .monospaced)
+    }
+    
+    /// Масштабирует значение относительно базового размера экрана (для MenuBar, использует CoinsScreen константы)
+    private func scaledValueForMenuBar(_ value: CGFloat, for geometry: GeometryProxy, isVertical: Bool = false) -> CGFloat {
+        let scaleFactor: CGFloat
+        if isVertical {
+            scaleFactor = geometry.size.height / DesignConstants.CoinsScreen.baseScreenHeight
+        } else {
+            scaleFactor = geometry.size.width / DesignConstants.CoinsScreen.baseScreenWidth
+        }
+        return value * scaleFactor
+    }
+    
+    /// Масштабирует размер шрифта пропорционально ширине экрана (для MenuBar, использует CoinsScreen константы)
+    private func scaledFontSizeForMenuBar(_ size: CGFloat, for geometry: GeometryProxy) -> CGFloat {
+        let scaleFactor = geometry.size.width / DesignConstants.CoinsScreen.baseScreenWidth
         return size * scaleFactor
     }
 }
@@ -203,7 +248,7 @@ struct ReadingRow: View {
             
             // Дата
             Text(dateFormatter.string(from: reading.date))
-                .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.HistoryScreen.Typography.dateSize, for: geometry)))
+                .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.HistoryScreen.Typography.dateSize, for: geometry)))
                 .foregroundColor(DesignConstants.HistoryScreen.Colors.textBlue.opacity(0.6))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -228,17 +273,15 @@ struct ReadingRow: View {
         return .system(size: size, weight: .light)
     }
     
-    /// Создает шрифт Roboto Mono Thin
-    private func robotoMonoThinFont(size: CGFloat) -> Font {
+    /// Создает шрифт Roboto Mono Light
+    private func robotoMonoLightFont(size: CGFloat) -> Font {
         let fontNames = [
-            "Roboto Mono",
-            "RobotoMono",
+            "Roboto Mono Light",
+            "RobotoMono-Light",
+            "RobotoMonoLight",
             "RobotoMono-VariableFont_wght",
-            "RobotoMono Variable",
-            "Roboto Mono Variable",
-            "Roboto Mono Thin",
-            "RobotoMono-Thin",
-            "RobotoMonoThin"
+            "Roboto Mono",
+            "RobotoMono"
         ]
         
         for fontName in fontNames {
@@ -247,7 +290,7 @@ struct ReadingRow: View {
             }
         }
         
-        return .system(size: size, weight: .ultraLight, design: .monospaced)
+        return .system(size: size, weight: .light, design: .monospaced)
     }
     
     /// Масштабирует значение относительно базового размера экрана

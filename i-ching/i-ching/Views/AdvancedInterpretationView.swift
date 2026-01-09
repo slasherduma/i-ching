@@ -162,7 +162,7 @@ struct AdvancedInterpretationView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Для размышления")
                         .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.AdvancedInterpretationScreen.Typography.labelSize, for: geometry)))
-                        .foregroundColor(DesignConstants.AdvancedInterpretationScreen.Colors.textBlue)
+                        .foregroundColor(DesignConstants.AdvancedInterpretationScreen.Colors.textBlue.opacity(1.0))
                         .padding(.leading, scaledValue(DesignConstants.AdvancedInterpretationScreen.Spacing.horizontalPadding, for: geometry))
                         .padding(.top, scaledValue(DesignConstants.AdvancedInterpretationScreen.Spacing.trigramsToReflection, for: geometry, isVertical: true))
                         .padding(.bottom, scaledValue(DesignConstants.AdvancedInterpretationScreen.Spacing.reflectionHeaderBottom, for: geometry, isVertical: true))

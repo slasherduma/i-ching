@@ -1,26 +1,45 @@
 import SwiftUI
+import UIKit
 
 struct DailySignView: View {
+    // ВРЕМЕННО: для тестирования дизайна - сбрасывает состояние при каждом открытии
+    var resetForTesting: Bool = false
+    
+    // Нужно для MenuBarView (TopBar из расклада)
+    @EnvironmentObject var navigationManager: NavigationManager
+    
     @State private var hexagram: Hexagram?
     @State private var lines: [Line] = []
     @State private var isGenerating = false
     @State private var showResult = false
     @State private var showHistory = false
     @State private var hasDailySignForToday = false
-    @Environment(\.dismiss) var dismiss
     
-    // Форматирование даты
+    // Форматирование даты в формате 08/01/2026 (только дата, без времени)
     private var formattedDate: String {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ru_RU")
-        formatter.dateFormat = "d MMMM yyyy г."
+        formatter.dateFormat = "dd/MM/yyyy"
+        return formatter.string(from: Date())
+    }
+    
+    // Форматирование даты в старом формате (для экрана с результатом)
+    private var formattedDateLong: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy h:mm a"
         return formatter.string(from: Date())
     }
     
     // Форматирование времени
     private var formattedTime: String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: Date())
+    }
+    
+    // Форматирование даты и времени в формате 08/01/2026 6:30 PM
+    private var formattedDateTime: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy h:mm a"
         return formatter.string(from: Date())
     }
     
@@ -43,43 +62,42 @@ struct DailySignView: View {
                             Spacer()
                         }
                     } else if let hexagram = hexagram {
-                        // Результат с гексаграммой - matches ResultView's structure
+                        // Результат с гексаграммой - используем тот же layout-паттерн, что в ResultView/HexagramView
                         VStack(spacing: 0) {
-                            // Отступ от верха до даты (с учетом safe zone iPhone)
+                            // Дата в формате 07/01/2026
+                            // Позиция: на 80px над гексаграммой
+                            // Гексаграмма на topToHexagram (360px), значит дата на 360 - 80 = 280px
+                            let datePosition = scaledValue(DesignConstants.CoinsScreen.Spacing.topToHexagram - 80, for: geometry, isVertical: true)
+                            
                             Spacer()
-                                .frame(height: scaledValue(DesignConstants.DailySignScreen.Spacing.topToDate, for: geometry, isVertical: true) + geometry.safeAreaInsets.top)
+                                .frame(height: datePosition)
                             
-                            // Дата и время (центрированы)
-                            VStack(spacing: 0) {
-                                Text(formattedDate)
-                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.DailySignScreen.Typography.dateSize, for: geometry)))
-                                    .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue)
-                                
-                                Text(formattedTime)
-                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.DailySignScreen.Typography.timeSize, for: geometry)))
-                                    .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue)
-                            }
-                            .frame(maxWidth: .infinity)
+                            // Дата (центрирована)
+                            Text(formattedDate)
+                                .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
+                                .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue)
+                                .frame(maxWidth: .infinity)
                             
-                            // Отступ от блока даты/времени до гексаграммы
+                            // Отступ от даты до гексаграммы (80px)
                             Spacer()
-                                .frame(height: scaledValue(DesignConstants.DailySignScreen.Spacing.dateTimeBlockToHexagram, for: geometry, isVertical: true))
+                                .frame(height: scaledValue(80, for: geometry, isVertical: true))
                             
-                            // Гексаграмма (центрирована)
-                            VStack(spacing: scaledValue(DesignConstants.DailySignScreen.Sizes.lineSpacing, for: geometry, isVertical: true)) {
+                            // Гексаграмма - используем те же константы, что в HexagramView/ResultView
+                            // Позиция: topToHexagram (360px от верха) - как в раскладе
+                            VStack(spacing: scaledValue(DesignConstants.CoinsScreen.Sizes.lineSpacing, for: geometry, isVertical: true)) {
                                 ForEach(Array(lines.reversed()), id: \.id) { line in
                                     LineView(line: line, geometry: geometry)
                                 }
                             }
-                            .frame(maxWidth: .infinity)
+                            .frame(maxWidth: .infinity, alignment: .center)
                             
                             // Отступ от низа гексаграммы до названия
                             Spacer()
                                 .frame(height: scaledValue(DesignConstants.DailySignScreen.Spacing.hexagramBottomToName, for: geometry, isVertical: true))
                             
-                            // Название гексаграммы (центрировано)
-                            Text("\(hexagram.number) : \(hexagram.name.uppercased())")
-                                .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.DailySignScreen.Typography.hexagramNameSize, for: geometry)))
+                            // Название гексаграммы (центрировано) - формат: 53 — ПОСТЕПЕННОСТЬ
+                            Text("\(hexagram.number) — \(hexagram.name.uppercased())")
+                                .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                                 .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue)
                                 .frame(maxWidth: .infinity)
                             
@@ -87,10 +105,10 @@ struct DailySignView: View {
                             Spacer()
                                 .frame(height: scaledValue(DesignConstants.DailySignScreen.Spacing.nameToShortParagraph, for: geometry, isVertical: true))
                             
-                            // Короткий абзац (центрированный, Roboto Mono Thin)
+                            // Короткий абзац (центрированный, Roboto Mono Light 22)
                             if let keyPhrase = hexagram.keyPhrase {
                                 Text(keyPhrase)
-                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.DailySignScreen.Typography.shortParagraphSize, for: geometry)))
+                                    .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                                     .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue.opacity(0.7))
                                     .padding(.horizontal, scaledValue(DesignConstants.DailySignScreen.Spacing.bodyTextHorizontalPadding, for: geometry))
                                     .frame(maxWidth: .infinity)
@@ -103,43 +121,118 @@ struct DailySignView: View {
                                 .frame(height: scaledValue(DesignConstants.DailySignScreen.Spacing.shortParagraphToBody, for: geometry, isVertical: true))
                             
                             // Основной текст (выровнен по левому краю, Helvetica Neue Thin 22)
+                            // Используем ту же логику формирования текста, что и в ResultView (2-3 предложения)
+                            // Каждое предложение - с новой строки (отдельный абзац)
                             let bodyText: String = {
-                                // Используем generalStrategy если есть, иначе первое предложение из interpretation
+                                // Используем generalStrategy если есть, иначе 2-3 предложения из interpretation
                                 if let generalStrategy = hexagram.generalStrategy {
                                     let sentences = generalStrategy.components(separatedBy: ".").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-                                    return sentences.first.map { $0 + "." } ?? generalStrategy
+                                    // Берем 2-3 предложения, каждое с новой строки
+                                    let count = min(sentences.count, 3)
+                                    if count > 0 {
+                                        return sentences.prefix(count).map { $0 + "." }.joined(separator: "\n")
+                                    }
+                                    return generalStrategy
                                 } else {
                                     let sentences = hexagram.interpretation.components(separatedBy: ".").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-                                    return sentences.first.map { $0 + "." } ?? hexagram.interpretation
+                                    // Берем 2-3 предложения, каждое с новой строки
+                                    let count = min(sentences.count, 3)
+                                    if count > 0 {
+                                        return sentences.prefix(count).map { $0 + "." }.joined(separator: "\n")
+                                    }
+                                    return hexagram.interpretation
                                 }
                             }()
                             
+                            // Основной текст с padding 80px слева и справа, выровнен по центру (Roboto Mono Light 22)
                             Text(bodyText)
-                                .font(helveticaNeueThinFont(size: scaledFontSize(DesignConstants.DailySignScreen.Typography.bodyTextSize, for: geometry)))
+                                .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                                 .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue)
-                                .padding(.horizontal, scaledValue(DesignConstants.DailySignScreen.Spacing.bodyTextHorizontalPadding, for: geometry))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .multilineTextAlignment(.leading)
+                                .padding(.horizontal, scaledValue(80, for: geometry))
+                                .frame(maxWidth: .infinity)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                            
+                            // Отступ от описания до текста о следующем знаке
+                            Spacer()
+                                .frame(height: scaledValue(40, for: geometry, isVertical: true))
+                            
+                            // Текст о следующем знаке дня
+                            Text("Новый знак дня можно будет получить завтра.")
+                                .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
+                                .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue.opacity(0.7))
+                                .padding(.horizontal, scaledValue(80, for: geometry))
+                                .frame(maxWidth: .infinity)
+                                .multilineTextAlignment(.center)
                                 .fixedSize(horizontal: false, vertical: true)
                             
                             // Гибкий отступ для выталкивания контента вверх (same as ResultView)
                             Spacer()
                         }
+                        .highPriorityGesture(
+                            DragGesture(minimumDistance: 30, coordinateSpace: .local)
+                                .onEnded { value in
+                                    let horizontalMovement = value.translation.width
+                                    let verticalMovement = abs(value.translation.height)
+                                    
+                                    // Проверяем, что это горизонтальный свайп (движение по горизонтали больше, чем по вертикали)
+                                    if abs(horizontalMovement) > abs(verticalMovement) {
+                                        // Стандартный жест "назад" iOS: свайп слева направо от левого края
+                                        // Проверяем, что жест начинается от левого края (в пределах первых 50px)
+                                        // и движение вправо больше 100px
+                                        if value.startLocation.x < 50 && horizontalMovement > 100 {
+                                            navigationManager.popToRoot()
+                                        }
+                                    }
+                                }
+                        )
                     } else {
                         // Начальный экран
-                        VStack(spacing: 0) {
-                            // Отступ сверху до заголовка (как в QuestionView)
-                            Spacer()
-                                .frame(height: scaledValue(DesignConstants.QuestionScreen.Spacing.topToTitle, for: geometry, isVertical: true))
+                        ZStack {
+                            VStack(spacing: 0) {
+                                // Отступ сверху до заголовка: 100px от top bar меню (как в раскладе)
+                                Spacer()
+                                    .frame(height: scaledValue(DesignConstants.CoinsScreen.Spacing.topToMenu + DesignConstants.CoinsScreen.Spacing.menuToCounter, for: geometry, isVertical: true))
+                                
+                                // Заголовок "ЗНАК ДНЯ"
+                                Text("ЗНАК ДНЯ")
+                                    .font(robotoMonoLightFont(size: scaledFontSize(36, for: geometry)))
+                                    .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue)
+                                    .frame(maxWidth: .infinity)
+                                
+                                // Гибкий отступ для выталкивания кнопки вниз
+                                Spacer()
+                            }
                             
-                            // Заголовок "ЗНАК ДНЯ"
-                            Text("ЗНАК ДНЯ")
-                                .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.buttonTextSize, for: geometry)))
+                            // Картинка sun по центру экрана, растянутая до отступов 48px от краёв
+                            Group {
+                                if let uiImage = UIImage(named: "sun") {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                } else if let url = Bundle.main.url(forResource: "sun", withExtension: "svg"),
+                                          let image = UIImage(contentsOfFile: url.path) {
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                } else {
+                                    Image("sun")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(scaledValue(48, for: geometry))
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                ButtonSoundService.shared.playRandomSound()
+                                handleGetSignAction()
+                            }
+                            
+                            // Дата в формате 07/01/2026 по центру экрана
+                            Text(formattedDate)
+                                .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                                 .foregroundColor(DesignConstants.DailySignScreen.Colors.buttonTextColor)
-                                .frame(maxWidth: .infinity)
-                            
-                            // Гибкий отступ для выталкивания кнопки вниз
-                            Spacer()
                         }
                     }
                 }
@@ -151,7 +244,7 @@ struct DailySignView: View {
                                 leftTitle: "СОХРАНИТЬ",
                                 leftAction: { saveToHistory() },
                                 rightTitle: "ВЫЙТИ В МЕНЮ",
-                                rightAction: { dismiss() },
+                                rightAction: { navigationManager.popToRoot() },
                                 lift: DesignConstants.Layout.ctaLiftHigh,
                                 geometry: geometry,
                                 textColor: .black
@@ -162,34 +255,7 @@ struct DailySignView: View {
                                 title: "ПОЛУЧИТЬ ЗНАК",
                                 isDisabled: isGenerating,
                                 action: {
-                                    print("🔘 Кнопка 'ПОЛУЧИТЬ ЗНАК' нажата")
-                                    
-                                    // Проверяем, есть ли уже знак для сегодня
-                                    let hasSign = StorageService.shared.hasDailySignForToday()
-                                    print("📊 hasSign: \(hasSign)")
-                                    
-                                    if hasSign {
-                                        // Если знак уже есть, просто загружаем и показываем его
-                                        print("🔍 Пытаемся загрузить существующий знак дня")
-                                        if let dailySign = StorageService.shared.loadDailySign() {
-                                            print("✅ Знак дня загружен: \(dailySign.hexagram.number) - \(dailySign.hexagram.name)")
-                                            self.hexagram = dailySign.hexagram
-                                            self.lines = dailySign.lines
-                                            self.hasDailySignForToday = true
-                                            self.showResult = true
-                                            print("✅ Состояние обновлено: hexagram = \(dailySign.hexagram.number)")
-                                        } else {
-                                            print("❌ ОШИБКА: hasSign = true, но loadDailySign() вернул nil!")
-                                            // Если знак не загружается, сбрасываем блокировку и генерируем новый
-                                            StorageService.shared.resetDailySign()
-                                            generateDailySign()
-                                        }
-                                        return
-                                    }
-                                    
-                                    // Если знака нет, генерируем новый
-                                    print("🎲 Начинаем генерацию нового знака дня")
-                                    generateDailySign()
+                                    handleGetSignAction()
                                 },
                                 lift: DesignConstants.Layout.ctaLiftHigh,
                                 geometry: geometry
@@ -198,25 +264,51 @@ struct DailySignView: View {
                         }
                     }
                 }
+                // TopBar: ровно тот же MenuBarView, что и на экранах расклада (Coins/Hexagram/Result)
+                .overlay(alignment: .top) {
+                    MenuBarView(geometry: geometry, onDismiss: { navigationManager.popToRoot() })
+                        .environmentObject(navigationManager)
+                }
             }
         }
         .background(DesignConstants.DailySignScreen.Colors.backgroundBeige)
         .ignoresSafeArea()
+        .gesture(
+            DragGesture(minimumDistance: 30, coordinateSpace: .local)
+                .onEnded { value in
+                    let horizontalMovement = value.translation.width
+                    let verticalMovement = abs(value.translation.height)
+                    
+                    // Проверяем, что это горизонтальный свайп (движение по горизонтали больше, чем по вертикали)
+                    if abs(horizontalMovement) > verticalMovement {
+                        // Стандартный жест "назад" iOS: свайп слева направо от левого края экрана
+                        if value.startLocation.x < 50 && horizontalMovement > 100 {
+                            navigationManager.popToRoot()
+                        }
+                    }
+                }
+        )
         .fullScreenCover(isPresented: $showHistory) {
             HistoryView()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ReturnToStartView"))) { _ in
             // Закрываем экран при получении уведомления о возврате на стартовый экран
-            // Используем transaction без анимации для мгновенного закрытия
-            var transaction = Transaction(animation: .none)
-            transaction.disablesAnimations = true
-            withTransaction(transaction) {
-                dismiss()
-            }
+            navigationManager.popToRoot()
         }
         .onAppear {
             print("👁️ DailySignView onAppear вызван")
             print("📊 onAppear: hexagram = \(hexagram != nil ? "есть (\(hexagram?.number ?? 0))" : "nil"), isGenerating = \(isGenerating)")
+            
+            // ВРЕМЕННО: для тестирования - сбрасываем состояние при каждом открытии
+            if resetForTesting {
+                print("🧪 ТЕСТОВЫЙ РЕЖИМ: сбрасываем состояние знака дня")
+                StorageService.shared.resetDailySign()
+                self.hexagram = nil
+                self.lines = []
+                self.hasDailySignForToday = false
+                self.showResult = false
+                self.isGenerating = false
+            }
             
             // Проверяем только если hexagram еще не установлен и не идет генерация
             if hexagram == nil && !isGenerating {
@@ -237,11 +329,18 @@ struct DailySignView: View {
     
     /// Масштабирует значение относительно базового размера экрана
     /// Для горизонтальных значений использует ширину, для вертикальных - высоту
+    /// Использует те же правила масштабирования, что и в HexagramView/ResultView для идентичного позиционирования
     private func scaledValue(_ value: CGFloat, for geometry: GeometryProxy, isVertical: Bool = false) -> CGFloat {
         let scaleFactor: CGFloat
-        // Если значение относится к CoinsScreen (кнопки), используем его базовые размеры
+        // Если значение относится к CoinsScreen (кнопки, позиция гексаграммы), используем его базовые размеры
+        // Это гарантирует, что гексаграмма будет в том же месте на обоих экранах
         if value == DesignConstants.CoinsScreen.Spacing.buttonToBottom || 
            value == DesignConstants.CoinsScreen.Spacing.buttonVerticalPadding ||
+           value == DesignConstants.CoinsScreen.Spacing.topToHexagram ||
+           value == DesignConstants.CoinsScreen.Spacing.topToHexagram - 80 ||
+           value == DesignConstants.CoinsScreen.Sizes.lineSpacing ||
+           value == DesignConstants.CoinsScreen.Sizes.hexagramTotalHeight ||
+           value == 80 || // 80px над гексаграммой
            value == 40 {
             if isVertical {
                 scaleFactor = geometry.size.height / DesignConstants.CoinsScreen.baseScreenHeight
@@ -354,6 +453,34 @@ struct DailySignView: View {
         }
         
         return .system(size: size, weight: .light)
+    }
+    
+    /// Создает View с отступом первой строки (красная строка) для каждого абзаца
+    private func textWithParagraphIndent(
+        _ text: String,
+        font: Font,
+        color: Color,
+        firstLineIndent: CGFloat,
+        geometry: GeometryProxy
+    ) -> some View {
+        let fontSize = scaledFontSize(DesignConstants.DailySignScreen.Typography.bodyTextSize, for: geometry)
+        
+        // Разделяем текст на абзацы (по \n)
+        let paragraphs = text.components(separatedBy: "\n").filter { !$0.isEmpty }
+        
+        // Используем VStack с отдельными Text для каждого предложения с отступом
+        return VStack(alignment: .leading, spacing: fontSize * 0.3) {
+            ForEach(Array(paragraphs.enumerated()), id: \.offset) { index, paragraph in
+                Text(paragraph)
+                    .font(helveticaNeueThinFont(size: fontSize))
+                    .foregroundColor(color)
+                    .padding(.leading, firstLineIndent)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.horizontal, scaledValue(DesignConstants.DailySignScreen.Spacing.bodyTextHorizontalPadding, for: geometry))
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     /// Создает шрифт Helvetica Neue Thin
@@ -542,7 +669,39 @@ struct DailySignView: View {
         
         // Показываем подтверждение
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            dismiss()
+            navigationManager.popToRoot()
         }
+    }
+    
+    /// Обработка нажатия для получения знака дня (используется и кнопкой, и солнцем)
+    private func handleGetSignAction() {
+        print("🔘 Кнопка 'ПОЛУЧИТЬ ЗНАК' нажата")
+        
+        // Проверяем, есть ли уже знак для сегодня
+        let hasSign = StorageService.shared.hasDailySignForToday()
+        print("📊 hasSign: \(hasSign)")
+        
+        if hasSign {
+            // Если знак уже есть, просто загружаем и показываем его
+            print("🔍 Пытаемся загрузить существующий знак дня")
+            if let dailySign = StorageService.shared.loadDailySign() {
+                print("✅ Знак дня загружен: \(dailySign.hexagram.number) - \(dailySign.hexagram.name)")
+                self.hexagram = dailySign.hexagram
+                self.lines = dailySign.lines
+                self.hasDailySignForToday = true
+                self.showResult = true
+                print("✅ Состояние обновлено: hexagram = \(dailySign.hexagram.number)")
+            } else {
+                print("❌ ОШИБКА: hasSign = true, но loadDailySign() вернул nil!")
+                // Если знак не загружается, сбрасываем блокировку и генерируем новый
+                StorageService.shared.resetDailySign()
+                generateDailySign()
+            }
+            return
+        }
+        
+        // Если знака нет, генерируем новый
+        print("🎲 Начинаем генерацию нового знака дня")
+        generateDailySign()
     }
 }

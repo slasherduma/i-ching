@@ -19,7 +19,8 @@ struct InterpretationView: View {
                         .font(.system(size: 16, weight: .light))
                         .foregroundColor(.black)
                         .lineSpacing(8)
-                        .padding(.horizontal, 40)
+                        .padding(.leading, 48)
+                        .padding(.trailing, 48)
                         .padding(.vertical, 20)
                 }
                 

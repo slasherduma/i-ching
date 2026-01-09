@@ -3,9 +3,6 @@ import UIKit
 
 struct StartView: View {
     @EnvironmentObject var navigationManager: NavigationManager
-    @State private var showHistory = false
-    @State private var showTutorial = false
-    @State private var showDailySign = false
     @State private var tappedButtonId: String? = nil
     
     private var hasSeenTutorial: Bool {
@@ -147,7 +144,7 @@ struct StartView: View {
                     
                     // Кнопки
                     VStack(spacing: scaledValue(DesignConstants.StartScreen.Spacing.buttonSpacing, for: geometry, isVertical: true)) {
-                        Button(action: {
+                        Button(action: withButtonSound {
                             handleButtonTap(buttonId: "question") {
                                 navigationManager.navigate(to: .question)
                             }
@@ -160,9 +157,9 @@ struct StartView: View {
                         }
                         .buttonStyle(RedTapButtonStyle(isTapped: tappedButtonId == "question"))
                         
-                        Button(action: {
+                        Button(action: withButtonSound {
                             handleButtonTap(buttonId: "dailySign") {
-                                showDailySign = true
+                                navigationManager.navigate(to: .dailySign)
                             }
                         }) {
                             Text("ЗНАК ДНЯ")
@@ -173,9 +170,9 @@ struct StartView: View {
                         }
                         .buttonStyle(RedTapButtonStyle(isTapped: tappedButtonId == "question"))
                         
-                        Button(action: {
+                        Button(action: withButtonSound {
                             handleButtonTap(buttonId: "history") {
-                                showHistory = true
+                                navigationManager.navigate(to: .history)
                             }
                         }) {
                             Text("ДНЕВНИК ПРЕДСКАЗАНИЙ")
@@ -187,9 +184,9 @@ struct StartView: View {
                         }
                         .buttonStyle(RedTapButtonStyle(isTapped: tappedButtonId == "question"))
                         
-                        Button(action: {
+                        Button(action: withButtonSound {
                             handleButtonTap(buttonId: "tutorial") {
-                                showTutorial = true
+                                navigationManager.navigate(to: .tutorial)
                             }
                         }) {
                             Text("ПОМОЩЬ")
@@ -211,26 +208,14 @@ struct StartView: View {
             // Показываем туториал при первом запуске
             if !hasSeenTutorial {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    showTutorial = true
+                    navigationManager.navigate(to: .tutorial)
                 }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenDailySign"))) { _ in
             // Открываем экран знака дня при нажатии на уведомление
             print("📱 StartView: получено событие OpenDailySign - открываем экран знака дня")
-            showDailySign = true
-        }
-        .fullScreenCover(isPresented: $showTutorial) {
-            TutorialView(isPresented: $showTutorial)
-                .transition(.opacity)
-        }
-        .fullScreenCover(isPresented: $showDailySign) {
-            DailySignView()
-                .transition(.opacity)
-        }
-        .fullScreenCover(isPresented: $showHistory) {
-            HistoryView()
-                .transition(.opacity)
+            navigationManager.navigate(to: .dailySign)
         }
     }
     

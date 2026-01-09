@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 
 struct TutorialView: View {
+    @EnvironmentObject var navigationManager: NavigationManager
     @State private var currentPage: Int = 0
     @Binding var isPresented: Bool
     
@@ -30,55 +31,134 @@ struct TutorialView: View {
                 DesignConstants.TutorialScreen.Colors.backgroundBeige
                     .ignoresSafeArea()
                 
-                VStack(spacing: 0) {
-                    // Верхний отступ до визуализации
-                    Spacer()
-                        .frame(height: scaledValue(DesignConstants.TutorialScreen.Spacing.topToVisual, for: geometry, isVertical: true))
-                    
-                    // Визуализация
-                    if currentPage < pages.count {
-                        TutorialVisual(type: pages[currentPage].visual, geometry: geometry)
-                            .frame(height: scaledValue(DesignConstants.TutorialScreen.Spacing.visualHeight, for: geometry, isVertical: true))
-                            .padding(.bottom, scaledValue(DesignConstants.TutorialScreen.Spacing.visualToTitle, for: geometry, isVertical: true))
+                ZStack(alignment: .top) {
+                    // Визуализация и заголовок - разные для каждой страницы
+                    VStack(spacing: 0) {
+                        if currentPage < pages.count {
+                            if pages[currentPage].visual == .hexagram {
+                                // Страница 1: гексаграмма
+                                let titleTop = scaledValue(DesignConstants.CoinsScreen.Spacing.topToHexagram - 80, for: geometry, isVertical: true)
+                                
+                                Spacer()
+                                    .frame(height: titleTop)
+                                
+                                // Заголовок
+                                Text(pages[currentPage].title)
+                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.TutorialScreen.Typography.titleSize, for: geometry)))
+                                    .foregroundColor(DesignConstants.TutorialScreen.Colors.textBlue)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, scaledValue(DesignConstants.TutorialScreen.Spacing.horizontalPadding, for: geometry))
+                                
+                                // Отступ от заголовка до гексаграммы: 80px
+                                Spacer()
+                                    .frame(height: scaledValue(80, for: geometry, isVertical: true))
+                                
+                                // Гексаграмма
+                                TutorialVisual(type: .hexagram, geometry: geometry)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                
+                            } else if pages[currentPage].visual == .coins {
+                                // Страница 2: монеты
+                                let titleTop = scaledValue(DesignConstants.CoinsScreen.Spacing.topToHexagram - 80, for: geometry, isVertical: true)
+                                
+                                Spacer()
+                                    .frame(height: titleTop)
+                                
+                                // Заголовок
+                                Text(pages[currentPage].title)
+                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.TutorialScreen.Typography.titleSize, for: geometry)))
+                                    .foregroundColor(DesignConstants.TutorialScreen.Colors.textBlue)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, scaledValue(DesignConstants.TutorialScreen.Spacing.horizontalPadding, for: geometry))
+                                
+                                // Отступ от заголовка до монет: 80px
+                                Spacer()
+                                    .frame(height: scaledValue(80, for: geometry, isVertical: true))
+                                
+                                // Монеты
+                                TutorialVisual(type: .coins, geometry: geometry)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                
+                            } else {
+                                // Страница 3: знак вопроса - заголовок сверху, знак вопроса под ним (как на странице 2)
+                                let titleTop = scaledValue(DesignConstants.CoinsScreen.Spacing.topToHexagram - 80, for: geometry, isVertical: true)
+                                
+                                Spacer()
+                                    .frame(height: titleTop)
+                                
+                                // Заголовок
+                                Text(pages[currentPage].title)
+                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.TutorialScreen.Typography.titleSize, for: geometry)))
+                                    .foregroundColor(DesignConstants.TutorialScreen.Colors.textBlue)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, scaledValue(DesignConstants.TutorialScreen.Spacing.horizontalPadding, for: geometry))
+                                
+                                // Отступ от заголовка до знака вопроса: 80px
+                                Spacer()
+                                    .frame(height: scaledValue(80, for: geometry, isVertical: true))
+                                
+                                // Знак вопроса на той же позиции, что и монеты на странице 2 (topToHexagram = 360px)
+                                TutorialVisual(type: .question, geometry: geometry)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
+                            
+                            Spacer()
+                        }
                     }
                     
-                    // Контент
+                    // Основной текст - всегда на фиксированной позиции 610px от верха
+                    // Используем одинаковые параметры форматирования для всех страниц
                     if currentPage < pages.count {
                         VStack(spacing: 0) {
-                            // Заголовок
-                            Text(pages[currentPage].title)
-                                .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.TutorialScreen.Typography.titleSize, for: geometry)))
-                                .foregroundColor(DesignConstants.TutorialScreen.Colors.textBlue)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, scaledValue(DesignConstants.TutorialScreen.Spacing.horizontalPadding, for: geometry))
-                                .padding(.bottom, scaledValue(DesignConstants.TutorialScreen.Spacing.titleToContent, for: geometry, isVertical: true))
+                            Spacer()
+                                .frame(height: scaledValue(610, for: geometry, isVertical: true))
                             
-                            // Основной текст
                             Text(pages[currentPage].content)
                                 .font(helveticaNeueLightFont(size: scaledFontSize(DesignConstants.TutorialScreen.Typography.bodySize, for: geometry)))
                                 .foregroundColor(DesignConstants.TutorialScreen.Colors.textBlue)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(6)
+                                .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, scaledValue(DesignConstants.TutorialScreen.Spacing.horizontalPadding, for: geometry))
+                                .padding(.bottom, scaledValue(DesignConstants.TutorialScreen.Spacing.contentToNavigation, for: geometry, isVertical: true))
+                            
+                            Spacer()
                         }
-                        .padding(.bottom, scaledValue(DesignConstants.TutorialScreen.Spacing.contentToNavigation, for: geometry, isVertical: true))
                     }
-                    
-                    Spacer()
                 }
-                
-                // Счетчик страниц по центру экрана
-                VStack {
-                    Spacer()
-                    Text("\(currentPage + 1)/\(pages.count)")
-                        .font(robotoMonoThinFont(size: scaledFontSize(22, for: geometry)))
-                        .foregroundColor(DesignConstants.TutorialScreen.Colors.textBlue)
-                    Spacer()
-                }
+                .frame(width: geometry.size.width, alignment: .center)
+            }
+            .overlay(alignment: .top) {
+                MenuBarView(geometry: geometry, onDismiss: { isPresented = false })
+                    .environmentObject(navigationManager)
             }
             .overlay(alignment: .bottom) {
-                // Use dual layout with conditional left button visibility
-                if currentPage > 0 {
+                VStack(spacing: 0) {
+                    // Счетчик страниц над кнопками с отступом 320px
+                    VStack(spacing: scaledValue(8, for: geometry, isVertical: true)) {
+                        Text("\(currentPage + 1)/\(pages.count)")
+                            .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
+                            .foregroundColor(DesignConstants.TutorialScreen.Colors.textBlue)
+                            .frame(maxWidth: .infinity)
+                        
+                        // Индикатор страниц - 3 точки
+                        HStack(spacing: scaledValue(8, for: geometry)) {
+                            ForEach(0..<pages.count, id: \.self) { index in
+                                Circle()
+                                    .fill(index == currentPage ? DesignConstants.TutorialScreen.Colors.textBlue : Color.clear)
+                                    .frame(width: scaledValue(8, for: geometry), height: scaledValue(8, for: geometry))
+                                    .overlay(
+                                        Circle()
+                                            .stroke(DesignConstants.TutorialScreen.Colors.textBlue, lineWidth: scaledValue(1, for: geometry))
+                                    )
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .padding(.bottom, scaledValue(320, for: geometry, isVertical: true))
+                    
+                    // Use dual layout with conditional left button visibility
+                    if currentPage > 0 {
                     BottomBar.dual(
                         leftTitle: "НАЗАД",
                         leftAction: {
@@ -102,10 +182,15 @@ struct TutorialView: View {
                     )
                     .padding(.bottom, DesignConstants.Layout.ctaSafeBottomPadding)
                 } else {
-                    // First page: only right button (ДАЛЕЕ)
-                    BottomBar.primary(
-                        title: "ДАЛЕЕ",
-                        action: {
+                    // First page: dual bottom bar - левая "ВЫХОД В МЕНЮ", правая "ДАЛЕЕ"
+                    BottomBar.dual(
+                        leftTitle: "ВЫХОД В МЕНЮ",
+                        leftAction: {
+                            markTutorialAsSeen()
+                            isPresented = false
+                        },
+                        rightTitle: "ДАЛЕЕ",
+                        rightAction: {
                             withAnimation {
                                 currentPage += 1
                             }
@@ -114,6 +199,7 @@ struct TutorialView: View {
                         geometry: geometry
                     )
                     .padding(.bottom, DesignConstants.Layout.ctaSafeBottomPadding)
+                    }
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ReturnToStartView"))) { _ in
@@ -126,21 +212,25 @@ struct TutorialView: View {
                 }
             }
             .gesture(
-                DragGesture(minimumDistance: 50, coordinateSpace: .local)
+                DragGesture(minimumDistance: 30, coordinateSpace: .local)
                     .onEnded { value in
                         let horizontalAmount = value.translation.width
                         let verticalAmount = value.translation.height
                         
                         // Проверяем, что свайп преимущественно горизонтальный
                         if abs(horizontalAmount) > abs(verticalAmount) {
-                            if horizontalAmount < 0 {
+                            // Свайп слева направо от левого края - возврат в главное меню
+                            if value.startLocation.x < 50 && horizontalAmount > 100 {
+                                markTutorialAsSeen()
+                                isPresented = false
+                            } else if horizontalAmount < -50 {
                                 // Свайп влево - следующая страница
                                 if currentPage < pages.count - 1 {
                                     withAnimation {
                                         currentPage += 1
                                     }
                                 }
-                            } else {
+                            } else if horizontalAmount > 50 {
                                 // Свайп вправо - предыдущая страница
                                 if currentPage > 0 {
                                     withAnimation {
@@ -218,12 +308,24 @@ struct TutorialView: View {
     
     /// Масштабирует значение относительно базового размера экрана
     /// Для горизонтальных значений использует ширину, для вертикальных - высоту
+    /// Если значение относится к CoinsScreen (гексаграмма), использует его базовые размеры
     private func scaledValue(_ value: CGFloat, for geometry: GeometryProxy, isVertical: Bool = false) -> CGFloat {
         let scaleFactor: CGFloat
-        if isVertical {
-            scaleFactor = geometry.size.height / DesignConstants.TutorialScreen.baseScreenHeight
+        // Если значение относится к CoinsScreen (гексаграмма), используем его базовые размеры
+        if value == DesignConstants.CoinsScreen.Spacing.topToHexagram ||
+           value == DesignConstants.CoinsScreen.Sizes.lineSpacing ||
+           value == DesignConstants.CoinsScreen.Sizes.lineThickness {
+            if isVertical {
+                scaleFactor = geometry.size.height / DesignConstants.CoinsScreen.baseScreenHeight
+            } else {
+                scaleFactor = geometry.size.width / DesignConstants.CoinsScreen.baseScreenWidth
+            }
         } else {
-            scaleFactor = geometry.size.width / DesignConstants.TutorialScreen.baseScreenWidth
+            if isVertical {
+                scaleFactor = geometry.size.height / DesignConstants.TutorialScreen.baseScreenHeight
+            } else {
+                scaleFactor = geometry.size.width / DesignConstants.TutorialScreen.baseScreenWidth
+            }
         }
         return value * scaleFactor
     }
@@ -309,6 +411,7 @@ struct TutorialVisual: View {
                         LineView(line: line, geometry: geometry)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .center)
             case .coins:
                 HStack(spacing: scaledValue(DesignConstants.CoinsScreen.Spacing.betweenCircles, for: geometry)) {
                     // Три монеты для примера: орел, решка, орел
@@ -316,10 +419,15 @@ struct TutorialVisual: View {
                     CoinView(isHeads: false, isThrowing: false, geometry: geometry)
                     CoinView(isHeads: true, isThrowing: false, geometry: geometry)
                 }
+                .frame(maxWidth: .infinity, alignment: .center)
             case .question:
-                Text("?")
-                    .font(.system(size: 80, weight: .ultraLight))
-                    .foregroundColor(DesignConstants.TutorialScreen.Colors.textBlue.opacity(0.5))
+                Image("question_mark")
+                    .resizable()
+                    .renderingMode(.template)
+                    .foregroundColor(DesignConstants.TutorialScreen.Colors.textBlue)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: scaledValue(150, for: geometry, isVertical: true))
+                    .frame(maxWidth: .infinity, alignment: .center)
             }
         }
     }

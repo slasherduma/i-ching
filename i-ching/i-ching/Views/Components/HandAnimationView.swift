@@ -3,6 +3,7 @@ import SwiftUI
 struct HandAnimationView: View {
     let isThrowing: Bool
     let geometry: GeometryProxy
+    let onTap: (() -> Void)? // Обработчик тапа
     
     @State private var currentFrame: Int = 1 // 1 или 2 для петли, 3 для броска, 4 для стоп-кадра
     @State private var animationTimer: Timer?
@@ -10,49 +11,99 @@ struct HandAnimationView: View {
     @State private var returnToLoopTask: DispatchWorkItem? // Задача возврата к петле
     
     var body: some View {
-        Group {
-            switch currentFrame {
-            case 1:
-                handFrame(
-                    imageName: "hand1",
-                    x: DesignConstants.CoinsScreen.HandAnimation.Frame1.x,
-                    y: DesignConstants.CoinsScreen.HandAnimation.Frame1.y,
-                    width: DesignConstants.CoinsScreen.HandAnimation.Frame1.width,
-                    height: DesignConstants.CoinsScreen.HandAnimation.Frame1.height
+        ZStack {
+            // Прозрачный фон для обработки тапов в области руки
+            // Используем максимальную область всех кадров для покрытия всей области руки
+            let maxX = max(
+                max(DesignConstants.CoinsScreen.HandAnimation.Frame1.x + DesignConstants.CoinsScreen.HandAnimation.Frame1.width,
+                    DesignConstants.CoinsScreen.HandAnimation.Frame2.x + DesignConstants.CoinsScreen.HandAnimation.Frame2.width),
+                max(DesignConstants.CoinsScreen.HandAnimation.Frame3.x + DesignConstants.CoinsScreen.HandAnimation.Frame3.width,
+                    DesignConstants.CoinsScreen.HandAnimation.Frame4.x + DesignConstants.CoinsScreen.HandAnimation.Frame4.width)
+            )
+            let minX = min(
+                min(DesignConstants.CoinsScreen.HandAnimation.Frame1.x,
+                    DesignConstants.CoinsScreen.HandAnimation.Frame2.x),
+                min(DesignConstants.CoinsScreen.HandAnimation.Frame3.x,
+                    DesignConstants.CoinsScreen.HandAnimation.Frame4.x)
+            )
+            let maxY = max(
+                max(DesignConstants.CoinsScreen.HandAnimation.Frame1.y + DesignConstants.CoinsScreen.HandAnimation.Frame1.height,
+                    DesignConstants.CoinsScreen.HandAnimation.Frame2.y + DesignConstants.CoinsScreen.HandAnimation.Frame2.height),
+                max(DesignConstants.CoinsScreen.HandAnimation.Frame3.y + DesignConstants.CoinsScreen.HandAnimation.Frame3.height,
+                    DesignConstants.CoinsScreen.HandAnimation.Frame4.y + DesignConstants.CoinsScreen.HandAnimation.Frame4.height)
+            )
+            let minY = min(
+                min(DesignConstants.CoinsScreen.HandAnimation.Frame1.y,
+                    DesignConstants.CoinsScreen.HandAnimation.Frame2.y),
+                min(DesignConstants.CoinsScreen.HandAnimation.Frame3.y,
+                    DesignConstants.CoinsScreen.HandAnimation.Frame4.y)
+            )
+            
+            // Прозрачный Rectangle, покрывающий область руки
+            Color.clear
+                .frame(
+                    width: scaledValue(maxX - minX, for: geometry),
+                    height: scaledValue(maxY - minY, for: geometry, isVertical: true)
                 )
-            case 2:
-                handFrame(
-                    imageName: "hand2",
-                    x: DesignConstants.CoinsScreen.HandAnimation.Frame2.x,
-                    y: DesignConstants.CoinsScreen.HandAnimation.Frame2.y,
-                    width: DesignConstants.CoinsScreen.HandAnimation.Frame2.width,
-                    height: DesignConstants.CoinsScreen.HandAnimation.Frame2.height
+                .position(
+                    x: scaledValue(minX + (maxX - minX) / 2, for: geometry),
+                    y: scaledValue(minY + (maxY - minY) / 2, for: geometry, isVertical: true)
                 )
-            case 3:
-                handFrame(
-                    imageName: "hand3",
-                    x: DesignConstants.CoinsScreen.HandAnimation.Frame3.x,
-                    y: DesignConstants.CoinsScreen.HandAnimation.Frame3.y,
-                    width: DesignConstants.CoinsScreen.HandAnimation.Frame3.width,
-                    height: DesignConstants.CoinsScreen.HandAnimation.Frame3.height
-                )
-            case 4:
-                handFrame(
-                    imageName: "hand4",
-                    x: DesignConstants.CoinsScreen.HandAnimation.Frame4.x,
-                    y: DesignConstants.CoinsScreen.HandAnimation.Frame4.y,
-                    width: DesignConstants.CoinsScreen.HandAnimation.Frame4.width,
-                    height: DesignConstants.CoinsScreen.HandAnimation.Frame4.height
-                )
-            default:
-                handFrame(
-                    imageName: "hand1",
-                    x: DesignConstants.CoinsScreen.HandAnimation.Frame1.x,
-                    y: DesignConstants.CoinsScreen.HandAnimation.Frame1.y,
-                    width: DesignConstants.CoinsScreen.HandAnimation.Frame1.width,
-                    height: DesignConstants.CoinsScreen.HandAnimation.Frame1.height
-                )
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    // Вызываем обработчик тапа, если он предоставлен и не идет бросок
+                    if !isThrowing, let onTap = onTap {
+                        ButtonSoundService.shared.playRandomSound()
+                        onTap()
+                    }
+                }
+            
+            // Анимация руки
+            Group {
+                switch currentFrame {
+                case 1:
+                    handFrame(
+                        imageName: "hand1",
+                        x: DesignConstants.CoinsScreen.HandAnimation.Frame1.x,
+                        y: DesignConstants.CoinsScreen.HandAnimation.Frame1.y,
+                        width: DesignConstants.CoinsScreen.HandAnimation.Frame1.width,
+                        height: DesignConstants.CoinsScreen.HandAnimation.Frame1.height
+                    )
+                case 2:
+                    handFrame(
+                        imageName: "hand2",
+                        x: DesignConstants.CoinsScreen.HandAnimation.Frame2.x,
+                        y: DesignConstants.CoinsScreen.HandAnimation.Frame2.y,
+                        width: DesignConstants.CoinsScreen.HandAnimation.Frame2.width,
+                        height: DesignConstants.CoinsScreen.HandAnimation.Frame2.height
+                    )
+                case 3:
+                    handFrame(
+                        imageName: "hand3",
+                        x: DesignConstants.CoinsScreen.HandAnimation.Frame3.x,
+                        y: DesignConstants.CoinsScreen.HandAnimation.Frame3.y,
+                        width: DesignConstants.CoinsScreen.HandAnimation.Frame3.width,
+                        height: DesignConstants.CoinsScreen.HandAnimation.Frame3.height
+                    )
+                case 4:
+                    handFrame(
+                        imageName: "hand4",
+                        x: DesignConstants.CoinsScreen.HandAnimation.Frame4.x,
+                        y: DesignConstants.CoinsScreen.HandAnimation.Frame4.y,
+                        width: DesignConstants.CoinsScreen.HandAnimation.Frame4.width,
+                        height: DesignConstants.CoinsScreen.HandAnimation.Frame4.height
+                    )
+                default:
+                    handFrame(
+                        imageName: "hand1",
+                        x: DesignConstants.CoinsScreen.HandAnimation.Frame1.x,
+                        y: DesignConstants.CoinsScreen.HandAnimation.Frame1.y,
+                        width: DesignConstants.CoinsScreen.HandAnimation.Frame1.width,
+                        height: DesignConstants.CoinsScreen.HandAnimation.Frame1.height
+                    )
+                }
             }
+            .allowsHitTesting(false) // Отключаем обработку тапов на самой руке, чтобы тап проходил через прозрачный фон
         }
         .onChange(of: isThrowing) { newValue in
             if newValue {
@@ -69,7 +120,7 @@ struct HandAnimationView: View {
                     startLoopAnimation()
                 }
                 returnToLoopTask = task
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: task)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: task)
             }
         }
         .onAppear {

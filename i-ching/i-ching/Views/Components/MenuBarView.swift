@@ -2,7 +2,11 @@ import SwiftUI
 
 struct MenuBarView: View {
     @EnvironmentObject var navigationManager: NavigationManager
+    @EnvironmentObject var musicService: BackgroundMusicService
     let geometry: GeometryProxy
+    var isDiaryMode: Bool = false
+    var onDismiss: (() -> Void)? = nil
+    var diaryTitleColor: Color? = nil
     
     var body: some View {
         VStack {
@@ -11,9 +15,14 @@ struct MenuBarView: View {
             
             HStack {
                 // Кнопка МЕНЮ слева
-                Button(action: {
-                    // Возвращаемся на стартовый экран через NavigationManager
-                    navigationManager.popToRoot()
+                Button(action: withButtonSound {
+                    if let onDismiss = onDismiss {
+                        // Если передан onDismiss (для fullScreenCover или sheet), используем его
+                        onDismiss()
+                    } else {
+                        // Иначе возвращаемся на стартовый экран через NavigationManager
+                        navigationManager.popToRoot()
+                    }
                 }) {
                     Text("МЕНЮ")
                         .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
@@ -23,29 +32,40 @@ struct MenuBarView: View {
                 
                 Spacer()
                 
-                // Иероглифы по центру
-                Text("乾 坤")
-                    .font(robotoMonoLightFont(size: scaledFontSize(36, for: geometry)))
-                    .foregroundColor(DesignConstants.CoinsScreen.Colors.counterTextColor)
+                // Иероглифы по центру или заголовок дневника
+                if isDiaryMode {
+                    Text("МОЙ ДНЕВНИК")
+                        .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
+                        .foregroundColor(diaryTitleColor ?? DesignConstants.CoinsScreen.Colors.counterTextColor)
+                        .accessibilityLabel("Мой дневник")
+                } else {
+                    Text("乾 坤")
+                        .font(robotoMonoLightFont(size: scaledFontSize(36, for: geometry)))
+                        .foregroundColor(DesignConstants.CoinsScreen.Colors.counterTextColor)
+                }
                 
                 Spacer()
                 
-                // Кнопка ЗВУК справа (неактивна)
-                Button(action: {
-                    // Пока неактивна
+                // Кнопка ЗВУК справа
+                Button(action: withButtonSound {
+                    if musicService.isPlaying {
+                        musicService.pause()
+                    } else {
+                        musicService.play()
+                    }
                 }) {
                     Text("ЗВУК")
                         .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                         .foregroundColor(DesignConstants.CoinsScreen.Colors.counterTextColor)
+                        .strikethrough(!musicService.isPlaying)
                 }
-                .disabled(true)
                 .padding(.trailing, scaledValue(DesignConstants.CoinsScreen.Spacing.menuHorizontalPadding, for: geometry))
             }
             .frame(maxWidth: .infinity)
             
             Spacer()
         }
-        .frame(width: geometry.size.width, height: geometry.size.height)
+        .frame(maxWidth: .infinity, alignment: .center)
         .allowsHitTesting(true)
     }
     

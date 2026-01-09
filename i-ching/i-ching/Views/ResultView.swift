@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ResultView: View {
     @EnvironmentObject var navigationManager: NavigationManager
@@ -7,18 +8,10 @@ struct ResultView: View {
     let question: String?
     @Environment(\.dismiss) var dismiss
     
-    // Форматирование даты
-    private var formattedDate: String {
+    // Форматирование даты и времени в одну строку
+    private var formattedDateTime: String {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ru_RU")
-        formatter.dateFormat = "d MMMM yyyy г."
-        return formatter.string(from: Date())
-    }
-    
-    // Форматирование времени
-    private var formattedTime: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
+        formatter.dateFormat = "dd/MM/yyyy h:mm a"
         return formatter.string(from: Date())
     }
     
@@ -38,41 +31,42 @@ struct ResultView: View {
             ZStack {
                 // Результат с гексаграммой
                 VStack(spacing: 0) {
-                    // Отступ от верха до даты (с учетом safe zone iPhone)
+                    // Дата и время в одну строку
+                    // Позиция: на том же уровне, что и счетчик на CoinsView
+                    // Отступ от верха: topToMenu (133) + menuToCounter (100) = 233px
                     Spacer()
-                        .frame(height: scaledValue(DesignConstants.DailySignScreen.Spacing.topToDate, for: geometry, isVertical: true) + geometry.safeAreaInsets.top)
+                        .frame(height: scaledValue(DesignConstants.CoinsScreen.Spacing.topToMenu + DesignConstants.CoinsScreen.Spacing.menuToCounter, for: geometry, isVertical: true))
                     
-                    // Дата и время (центрированы)
-                    VStack(spacing: 0) {
-                        Text(formattedDate)
-                            .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.DailySignScreen.Typography.dateSize, for: geometry)))
-                            .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue)
-                        
-                        Text(formattedTime)
-                            .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.DailySignScreen.Typography.timeSize, for: geometry)))
-                            .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue)
-                    }
-                    .frame(maxWidth: .infinity)
+                    // Дата и время в одну строку (центрированы)
+                    Text(formattedDateTime)
+                        .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
+                        .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue)
+                        .frame(maxWidth: .infinity)
                     
-                    // Отступ от блока даты/времени до гексаграммы
+                    // Отступ от даты до гексаграммы
+                    // Гексаграмма на 360px, дата на 233px, значит отступ = 360 - 233 = 127px
                     Spacer()
-                        .frame(height: scaledValue(DesignConstants.DailySignScreen.Spacing.dateTimeBlockToHexagram, for: geometry, isVertical: true))
+                        .frame(height: scaledValue(DesignConstants.CoinsScreen.Spacing.topToHexagram, for: geometry, isVertical: true) - scaledValue(DesignConstants.CoinsScreen.Spacing.topToMenu + DesignConstants.CoinsScreen.Spacing.menuToCounter, for: geometry, isVertical: true))
                     
-                    // Гексаграмма (центрирована)
-                    VStack(spacing: scaledValue(DesignConstants.DailySignScreen.Sizes.lineSpacing, for: geometry, isVertical: true)) {
+                    // Гексаграмма теперь отображается через overlay в ContentView
+                    // Здесь оставляем пустое пространство для правильного позиционирования остальных элементов
+                    // Резервирование пространства для гексаграммы (отображается через overlay)
+                    VStack(spacing: scaledValue(DesignConstants.CoinsScreen.Sizes.lineSpacing, for: geometry, isVertical: true)) {
                         ForEach(Array(lines.reversed()), id: \.id) { line in
-                            LineView(line: line, geometry: geometry)
+                            // Невидимая линия для резервирования пространства
+                            Color.clear
+                                .frame(height: scaledValue(DesignConstants.CoinsScreen.Sizes.lineThickness, for: geometry, isVertical: true))
                         }
                     }
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .center)
                     
                     // Отступ от низа гексаграммы до названия
                     Spacer()
                         .frame(height: scaledValue(DesignConstants.DailySignScreen.Spacing.hexagramBottomToName, for: geometry, isVertical: true))
                     
-                    // Название гексаграммы (центрировано)
-                    Text("\(hexagram.number) : \(hexagram.name.uppercased())")
-                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.DailySignScreen.Typography.hexagramNameSize, for: geometry)))
+                    // Название гексаграммы (центрировано) - формат: 53 — ПОСТЕПЕННОСТЬ
+                    Text("\(hexagram.number) — \(hexagram.name.uppercased())")
+                        .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                         .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue)
                         .frame(maxWidth: .infinity)
                     
@@ -80,10 +74,10 @@ struct ResultView: View {
                     Spacer()
                         .frame(height: scaledValue(DesignConstants.DailySignScreen.Spacing.nameToShortParagraph, for: geometry, isVertical: true))
                     
-                    // Короткий абзац (центрированный, Roboto Mono Thin)
+                    // Короткий абзац (центрированный, Roboto Mono Light 22)
                     if let keyPhrase = hexagram.keyPhrase {
                         Text(keyPhrase)
-                            .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.DailySignScreen.Typography.shortParagraphSize, for: geometry)))
+                            .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                             .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue.opacity(0.7))
                             .padding(.horizontal, scaledValue(DesignConstants.DailySignScreen.Spacing.bodyTextHorizontalPadding, for: geometry))
                             .frame(maxWidth: .infinity)
@@ -96,23 +90,35 @@ struct ResultView: View {
                         .frame(height: scaledValue(DesignConstants.DailySignScreen.Spacing.shortParagraphToBody, for: geometry, isVertical: true))
                     
                     // Основной текст (выровнен по левому краю, Helvetica Neue Thin 22)
+                    // Каждое предложение - с новой строки (отдельный абзац)
                     let bodyText: String = {
-                        // Используем generalStrategy если есть, иначе первое предложение из interpretation
+                        // Используем generalStrategy если есть, иначе 2-3 предложения из interpretation
                         if let generalStrategy = hexagram.generalStrategy {
                             let sentences = generalStrategy.components(separatedBy: ".").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-                            return sentences.first.map { $0 + "." } ?? generalStrategy
+                            // Берем 2-3 предложения, каждое с новой строки
+                            let count = min(sentences.count, 3)
+                            if count > 0 {
+                                return sentences.prefix(count).map { $0 + "." }.joined(separator: "\n")
+                            }
+                            return generalStrategy
                         } else {
                             let sentences = hexagram.interpretation.components(separatedBy: ".").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-                            return sentences.first.map { $0 + "." } ?? hexagram.interpretation
+                            // Берем 2-3 предложения, каждое с новой строки
+                            let count = min(sentences.count, 3)
+                            if count > 0 {
+                                return sentences.prefix(count).map { $0 + "." }.joined(separator: "\n")
+                            }
+                            return hexagram.interpretation
                         }
                     }()
                     
+                    // Основной текст с padding 80px слева и справа, выровнен по центру (Roboto Mono Light 22)
                     Text(bodyText)
-                        .font(helveticaNeueThinFont(size: scaledFontSize(DesignConstants.DailySignScreen.Typography.bodyTextSize, for: geometry)))
+                        .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                         .foregroundColor(DesignConstants.DailySignScreen.Colors.textBlue)
-                        .padding(.horizontal, scaledValue(DesignConstants.DailySignScreen.Spacing.bodyTextHorizontalPadding, for: geometry))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .multilineTextAlignment(.leading)
+                        .padding(.horizontal, scaledValue(80, for: geometry))
+                        .frame(maxWidth: .infinity)
+                        .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.bottom, contentBottomPad)
                     
@@ -121,6 +127,10 @@ struct ResultView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .overlay(alignment: .top) {
+                MenuBarView(geometry: geometry, onDismiss: { navigationManager.popToRoot() })
+                    .environmentObject(navigationManager)
+            }
             .overlay(alignment: .bottom) {
                 BottomBar.dual(
                     leftTitle: "СОХРАНИТЬ",
@@ -133,6 +143,10 @@ struct ResultView: View {
                 )
                 .padding(.bottom, DesignConstants.Layout.ctaSafeBottomPadding)
             }
+        }
+        .onAppear {
+            // Обновляем гексограмму в overlay при появлении экрана
+            navigationManager.updateHexagramLines(lines)
         }
     }
     
@@ -250,6 +264,34 @@ struct ResultView: View {
         }
         
         return .system(size: size, weight: .light)
+    }
+    
+    /// Создает View с отступом первой строки (красная строка) для каждого абзаца
+    private func textWithParagraphIndent(
+        _ text: String,
+        font: Font,
+        color: Color,
+        firstLineIndent: CGFloat,
+        geometry: GeometryProxy
+    ) -> some View {
+        let fontSize = scaledFontSize(DesignConstants.DailySignScreen.Typography.bodyTextSize, for: geometry)
+        
+        // Разделяем текст на абзацы (по \n)
+        let paragraphs = text.components(separatedBy: "\n").filter { !$0.isEmpty }
+        
+        // Используем VStack с отдельными Text для каждого предложения с отступом
+        return VStack(alignment: .leading, spacing: fontSize * 0.3) {
+            ForEach(Array(paragraphs.enumerated()), id: \.offset) { index, paragraph in
+                Text(paragraph)
+                    .font(helveticaNeueThinFont(size: fontSize))
+                    .foregroundColor(color)
+                    .padding(.leading, firstLineIndent)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.horizontal, scaledValue(DesignConstants.DailySignScreen.Spacing.bodyTextHorizontalPadding, for: geometry))
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     /// Создает шрифт Helvetica Neue Thin

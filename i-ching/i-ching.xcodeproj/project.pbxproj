@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8AE196302EF5DB31006BBCF2 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 8AE196252EF5DB31006BBCF2 /* README.md */; };
-		8AE196312EF5DB31006BBCF2 /* SETUP.md in Resources */ = {isa = PBXBuildFile; fileRef = 8AE196282EF5DB31006BBCF2 /* SETUP.md */; };
 		8AE197B72EF61181006BBCF2 /* IChingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE197B62EF61181006BBCF2 /* IChingApp.swift */; };
 /* End PBXBuildFile section */
 
@@ -237,8 +235,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8AE196302EF5DB31006BBCF2 /* README.md in Resources */,
-				8AE196312EF5DB31006BBCF2 /* SETUP.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

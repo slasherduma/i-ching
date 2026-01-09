@@ -49,18 +49,18 @@ struct InterpretationView: View {
                             .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.titleBottom, for: geometry, isVertical: true))
                         }
                         
-                        // Информация о гексаграмме (номер, название, образ) - Roboto Mono Thin 22pt
+                        // Информация о гексаграмме (номер, название, образ) - Roboto Mono Light 22pt
                         VStack(alignment: .leading, spacing: 0) {
                             // Номер и название гексаграммы
                             Text("Гексаграмма \(hexagram.number): \(hexagram.name.uppercased())")
-                                .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.labelSize, for: geometry)))
+                                .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                                 .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue)
                                 .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.hexagramNumberBottom, for: geometry, isVertical: true))
                             
                             // Образ
                             if let image = hexagram.image {
                                 Text("Образ: \(image)")
-                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.labelSize, for: geometry)))
+                                    .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                                     .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue)
                                     .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.hexagramImageBottom, for: geometry, isVertical: true))
                             }
@@ -80,10 +80,10 @@ struct InterpretationView: View {
                         .padding(.horizontal, scaledValue(DesignConstants.InterpretationScreen.Spacing.horizontalPadding, for: geometry))
                         .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.hexagramInfoBlockBottom, for: geometry, isVertical: true))
                         
-                        // Блок "Сейчас" - Roboto Mono Thin 22pt для заголовка, Helvetica Neue Light 22pt для текста
+                        // Блок "Сейчас" - Roboto Mono Light 22pt для заголовка, Helvetica Neue Light 22pt для текста
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Сейчас")
-                                .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.labelSize, for: geometry)))
+                                .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                                 .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue)
                                 .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.nowHeaderBottom, for: geometry, isVertical: true))
                             
@@ -113,6 +113,7 @@ struct InterpretationView: View {
                                 }
                             }
                             .padding(.leading, scaledValue(DesignConstants.InterpretationScreen.Spacing.horizontalPadding, for: geometry))
+                            .padding(.trailing, scaledValue(DesignConstants.InterpretationScreen.Spacing.horizontalPadding, for: geometry))
                             .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.roleSelectorBlockBottom, for: geometry, isVertical: true))
                         }
                         
@@ -120,7 +121,7 @@ struct InterpretationView: View {
                         if !changingLines.isEmpty {
                             VStack(alignment: .leading, spacing: 0) {
                                 Text("Что будет меняться")
-                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.labelSize, for: geometry)))
+                                    .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                                     .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue)
                                     .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.changesHeaderBottom, for: geometry, isVertical: true))
                                 
@@ -130,7 +131,7 @@ struct InterpretationView: View {
                                         if position >= 0 && position < lineTexts.count {
                                             VStack(alignment: .leading, spacing: 0) {
                                                 Text("Линия \(line.position)")
-                                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.labelSize, for: geometry)))
+                                                    .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                                                     .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue)
                                                     .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.lineHeaderToText, for: geometry, isVertical: true))
                                                 
@@ -160,7 +161,7 @@ struct InterpretationView: View {
                         if let trend = interpretation.trend {
                             VStack(alignment: .leading, spacing: 0) {
                                 Text("Тенденция")
-                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.labelSize, for: geometry)))
+                                    .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                                     .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue)
                                     .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.trendHeaderBottom, for: geometry, isVertical: true))
                                 
@@ -180,7 +181,7 @@ struct InterpretationView: View {
                         if let practicalAdvice = hexagram.practicalAdvice, !practicalAdvice.isEmpty {
                             VStack(alignment: .leading, spacing: 0) {
                                 Text("Практические шаги")
-                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.labelSize, for: geometry)))
+                                    .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                                     .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue)
                                     .padding(.leading, scaledValue(DesignConstants.InterpretationScreen.Spacing.horizontalPadding, for: geometry))
                                     .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.practicalStepsHeaderBottom, for: geometry, isVertical: true))
@@ -205,7 +206,7 @@ struct InterpretationView: View {
                         } else if !interpretation.practical.isEmpty {
                             VStack(alignment: .leading, spacing: 0) {
                                 Text("Практические шаги")
-                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.labelSize, for: geometry)))
+                                    .font(robotoMonoLightFont(size: scaledFontSize(22, for: geometry)))
                                     .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue)
                                     .padding(.leading, scaledValue(DesignConstants.InterpretationScreen.Spacing.horizontalPadding, for: geometry))
                                     .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.practicalStepsHeaderBottom, for: geometry, isVertical: true))
@@ -229,47 +230,25 @@ struct InterpretationView: View {
                             .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.practicalStepsBlockBottom, for: geometry, isVertical: true))
                         }
                         
-                        // Вопросы для размышления
-                        if let questions = hexagram.reflectionQuestions, !questions.isEmpty {
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text("Для размышления")
-                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.labelSize, for: geometry)))
-                                    .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue)
-                                    .padding(.leading, scaledValue(DesignConstants.InterpretationScreen.Spacing.horizontalPadding, for: geometry))
-                                    .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.reflectionHeaderBottom, for: geometry, isVertical: true))
-                                
-                                ForEach(questions, id: \.self) { question in
-                                    Text("• \(question)")
-                                        .font(helveticaNeueLightFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.bodySize, for: geometry)))
-                                        .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                        .padding(.bottom, scaledValue(8, for: geometry, isVertical: true))
-                                        .padding(.leading, scaledValue(DesignConstants.InterpretationScreen.Spacing.bulletBlockLeftPadding, for: geometry))
-                                        .padding(.trailing, scaledValue(DesignConstants.InterpretationScreen.Spacing.bulletBlockRightPadding, for: geometry))
-                                }
-                            }
-                            .padding(.bottom, scaledValue(DesignConstants.InterpretationScreen.Spacing.reflectionBlockBottom, for: geometry, isVertical: true))
-                        }
-                        
                         // Переключатель углубленного режима
                         let hasAdvancedContent = (!changingLines.isEmpty && hexagram.lineTexts != nil) ||
                                                   hexagram.trigrams != nil ||
                                                   (hexagram.reflectionQuestions != nil && !hexagram.reflectionQuestions!.isEmpty)
                         
                         if hasAdvancedContent {
-                            Button(action: {
+                            Button(action: withButtonSound {
                                 withAnimation(.easeInOut(duration: 0.3)) {
                                     showAdvanced.toggle()
                                 }
                             }) {
                                 HStack {
                                     Text(showAdvanced ? "Скрыть подробности" : "Подробнее об этом раскладе")
-                                        .font(helveticaNeueLightFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.bodySize, for: geometry)))
-                                        .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue.opacity(0.7))
+                                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.bodySize, for: geometry)))
+                                        .foregroundColor(DesignConstants.InterpretationScreen.Colors.buttonTextColor)
                                     
                                     Image(systemName: showAdvanced ? "chevron.up" : "chevron.down")
-                                        .font(helveticaNeueLightFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.bodySize, for: geometry)))
-                                        .foregroundColor(DesignConstants.InterpretationScreen.Colors.textBlue.opacity(0.7))
+                                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.InterpretationScreen.Typography.bodySize, for: geometry)))
+                                        .foregroundColor(DesignConstants.InterpretationScreen.Colors.buttonTextColor)
                                 }
                             }
                             .padding(.horizontal, scaledValue(DesignConstants.InterpretationScreen.Spacing.horizontalPadding, for: geometry))
@@ -289,6 +268,10 @@ struct InterpretationView: View {
                         }
                     }
                     .padding(.bottom, reserveHeight(for: geometry))
+            }
+            .overlay(alignment: .top) {
+                MenuBarView(geometry: geometry, onDismiss: { navigationManager.popToRoot() })
+                    .environmentObject(navigationManager)
             }
             .overlay(alignment: .bottom) {
                 BottomBar.primary(

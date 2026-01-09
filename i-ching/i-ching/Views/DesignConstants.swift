@@ -208,7 +208,7 @@ struct DesignConstants {
             static let topToTitle: CGFloat = 247 // От верха до заголовка
             static let titleToFirstParagraph: CGFloat = 40 // От заголовка до первого параграфа
             static let betweenParagraphs: CGFloat = 20 // Между параграфами
-            static let secondParagraphToInput: CGFloat = 200 // От второго параграфа до поля ввода
+            static let secondParagraphToInput: CGFloat = 80 // От второго параграфа до поля ввода
             static let inputToButtons: CGFloat = 497 // От поля ввода до кнопок
             static let buttonsToBottom: CGFloat = 156 // От кнопок до нижнего края
             
@@ -259,9 +259,10 @@ struct DesignConstants {
         struct Spacing {
             // Вертикальные отступы
             static let topToMenu: CGFloat = 133 // От верха экрана до строки меню
+            static let menuToCounter: CGFloat = 100 // От top bar меню до счетчика
             static let topToHexagram: CGFloat = 360 // От верха экрана (над черным островком) до первой линии гексаграммы
             static let hexagramToCircles: CGFloat = 160 // От низа гексаграммы до монет
-            static let circlesToCounter: CGFloat = 60 // От кругов до счетчика
+            static let circlesToCounter: CGFloat = 60 // От кругов до счетчика (устаревшая, не используется)
             static let counterToButton: CGFloat = 400 // От счетчика до кнопки "БРОСИТЬ МОНЕТЫ"
             static let buttonToBottom: CGFloat = 150 // От кнопки до нижнего края
             
@@ -357,11 +358,11 @@ struct DesignConstants {
         struct Typography {
             // Заголовок "Текущее состояние"
             static let currentStateTitleSize: CGFloat = 22
-            static let currentStateTitleFontName = "Roboto Mono Thin"
+            static let currentStateTitleFontName = "Roboto Mono Light"
             
             // "Гексограмма X: ..."
             static let hexagramLabelSize: CGFloat = 22
-            static let hexagramLabelFontName = "Roboto Mono Thin"
+            static let hexagramLabelFontName = "Roboto Mono Light"
             
             // Текст интерпретации
             static let interpretationSize: CGFloat = 22
@@ -369,7 +370,7 @@ struct DesignConstants {
             
             // Вопрос "Куда всё движется если ничего не менять"
             static let questionSize: CGFloat = 22
-            static let questionFontName = "Roboto Mono Thin"
+            static let questionFontName = "Roboto Mono Light"
             
             // Кнопка "ПОДРОБНЕЕ"
             static let buttonSize: CGFloat = 36
@@ -379,7 +380,7 @@ struct DesignConstants {
         // MARK: - Spacing (точные значения из Figma 660×1434)
         struct Spacing {
             // Вертикальные отступы
-            static let topToCurrentStateTitle: CGFloat = 150 // От верха до "Текущее состояние"
+            static let topToCurrentStateTitle: CGFloat = 258 // От верха до "Текущее состояние" (80px между низом текста и верхом гексаграммы на Y=360)
             static let currentStateTitleToHexagram: CGFloat = 80 // От "Текущее состояние" до первой гексограммы
             static let hexagramToLabel: CGFloat = 80 // От первой гексограммы до "Гексограмма 11: МИР"
             static let labelToInterpretation: CGFloat = 20 // От "Гексограмма 11: МИР" до текста интерпретации
@@ -459,7 +460,7 @@ struct DesignConstants {
             // Блок выбора роли
             static let roleSelectorHeaderBottom: CGFloat = 20 // Отступ снизу заголовка "Выбери свою роль"
             static let roleButtonsSpacing: CGFloat = 60 // Отступ между кнопками "Лидер" и "Участник"
-            static let roleButtonsBottom: CGFloat = 40 // Отступ снизу кнопок ролей
+            static let roleButtonsBottom: CGFloat = 0 // Отступ снизу кнопок ролей
             static let strategyTextTop: CGFloat = 20 // Отступ сверху текста стратегии
             static let roleSelectorBlockBottom: CGFloat = 40 // Отступ снизу всего блока выбора роли
             
@@ -687,7 +688,7 @@ struct DesignConstants {
             
             // Дата
             static let dateSize: CGFloat = 22
-            static let dateFontName = "Roboto Mono Thin"
+            static let dateFontName = "Roboto Mono Light"
             
             // Пустое состояние
             static let emptyStateSize: CGFloat = 22
@@ -793,7 +794,7 @@ struct DesignConstants {
             
             // Заголовки секций (дата, вопрос, гексаграмма, интерпретация и т.д.)
             static let sectionLabelSize: CGFloat = 22
-            static let sectionLabelFontName = "Roboto Mono Thin"
+            static let sectionLabelFontName = "Roboto Mono Light"
             
             // Основной текст (вопрос, интерпретация, заметки)
             static let bodySize: CGFloat = 22
@@ -868,5 +869,4 @@ extension Color {
         )
     }
 }
-
 

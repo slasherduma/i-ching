@@ -3,8 +3,6 @@ import SwiftUI
 struct ReadingDetailView: View {
     let reading: Reading
     let onDismiss: (() -> Void)?
-    @State private var userNotes: String = ""
-    @State private var outcome: String = ""
     @State private var showDeleteConfirmation = false
     
     init(reading: Reading, onDismiss: (() -> Void)? = nil) {
@@ -14,9 +12,7 @@ struct ReadingDetailView: View {
     
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        formatter.locale = Locale(identifier: "ru_RU")
+        formatter.dateFormat = "dd/MM/yyyy h:mm a"
         return formatter
     }
     
@@ -52,7 +48,7 @@ struct ReadingDetailView: View {
                 VStack(spacing: 0) {
                     // Заголовок
                     HStack {
-                        Button(action: {
+                        Button(action: withButtonSound {
                             onDismiss?()
                         }) {
                             Text("Назад")
@@ -81,7 +77,7 @@ struct ReadingDetailView: View {
                         VStack(alignment: .leading, spacing: 0) {
                             // Дата
                             Text(dateFormatter.string(from: reading.date))
-                                .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                                .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
                                 .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue.opacity(0.6))
                                 .padding(.horizontal, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.horizontalPadding, for: geometry))
                                 .padding(.top, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.contentTop, for: geometry, isVertical: true))
@@ -91,7 +87,7 @@ struct ReadingDetailView: View {
                             if let question = reading.question, !question.isEmpty {
                                 VStack(alignment: .leading, spacing: 0) {
                                     Text("Вопрос")
-                                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
                                         .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
                                         .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
                                     
@@ -107,7 +103,7 @@ struct ReadingDetailView: View {
                             // Гексаграмма
                             VStack(alignment: .leading, spacing: 0) {
                                 Text("Гексаграмма")
-                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                                    .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
                                     .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
                                     .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
                                 
@@ -139,7 +135,7 @@ struct ReadingDetailView: View {
                                 // Fallback на сохраненную интерпретацию, если гексаграмма не найдена
                                 VStack(alignment: .leading, spacing: 0) {
                                     Text("Интерпретация")
-                                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
                                         .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
                                         .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
                                     
@@ -152,56 +148,13 @@ struct ReadingDetailView: View {
                                 .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionSpacing, for: geometry, isVertical: true))
                             }
                             
-                            // Заметки пользователя
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text("Мои заметки")
-                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
-                                    .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
-                                    .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
-                                
-                                TextField("Добавь свои мысли...", text: $userNotes, axis: .vertical)
-                                    .font(helveticaNeueLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.inputSize, for: geometry)))
-                                    .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
-                                    .lineLimit(5...10)
-                                    .padding(.horizontal, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.inputInternalPadding, for: geometry))
-                                    .padding(.vertical, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.inputInternalPadding, for: geometry, isVertical: true))
-                                    .overlay(
-                                        Rectangle()
-                                            .stroke(DesignConstants.ReadingDetailScreen.Colors.textBlue.opacity(0.3), lineWidth: 1)
-                                    )
-                            }
-                            .padding(.horizontal, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.horizontalPadding, for: geometry))
-                            .padding(.top, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.inputTop, for: geometry, isVertical: true))
-                            .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.inputBottom, for: geometry, isVertical: true))
-                            
-                            // Как потом всё сложилось?
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text("Как потом всё сложилось?")
-                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
-                                    .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
-                                    .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
-                                
-                                TextField("Опиши, что произошло...", text: $outcome, axis: .vertical)
-                                    .font(helveticaNeueLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.inputSize, for: geometry)))
-                                    .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
-                                    .lineLimit(5...10)
-                                    .padding(.horizontal, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.inputInternalPadding, for: geometry))
-                                    .padding(.vertical, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.inputInternalPadding, for: geometry, isVertical: true))
-                                    .overlay(
-                                        Rectangle()
-                                            .stroke(DesignConstants.ReadingDetailScreen.Colors.textBlue.opacity(0.3), lineWidth: 1)
-                                    )
-                            }
-                            .padding(.horizontal, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.horizontalPadding, for: geometry))
-                            .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.inputBottom, for: geometry, isVertical: true))
-                            
                             // Кнопка удаления
-                            Button(action: {
+                            Button(action: withButtonSound {
                                 showDeleteConfirmation = true
                             }) {
-                                Text("Удалить")
-                                    .font(helveticaNeueLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.deleteButtonSize, for: geometry)))
-                                    .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue.opacity(0.6))
+                                Text("УДАЛИТЬ")
+                                    .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.deleteButtonSize, for: geometry)))
+                                    .foregroundColor(Color(hex: "FF3636"))
                             }
                             .padding(.horizontal, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.horizontalPadding, for: geometry))
                             .padding(.top, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.deleteButtonTop, for: geometry, isVertical: true))
@@ -211,29 +164,15 @@ struct ReadingDetailView: View {
                 }
             }
         }
-        .onAppear {
-            userNotes = reading.userNotes ?? ""
-            outcome = reading.outcome ?? ""
-        }
-        .onDisappear {
-            saveChanges()
-        }
         .alert("Удалить расклад?", isPresented: $showDeleteConfirmation) {
-            Button("Отмена", role: .cancel) { }
+            Button("Отмена", role: .cancel) {
+                ButtonSoundService.shared.playRandomSound()
+            }
             Button("Удалить", role: .destructive) {
+                ButtonSoundService.shared.playRandomSound()
                 deleteReading()
             }
         }
-    }
-    
-    private func saveChanges() {
-        let updatedReading = reading.updated(
-            userNotes: userNotes.isEmpty ? nil : userNotes,
-            tags: nil, // Теги убраны из MVP
-            outcome: outcome.isEmpty ? nil : outcome
-        )
-        
-        StorageService.shared.updateReading(updatedReading)
     }
     
     private func deleteReading() {
@@ -249,7 +188,7 @@ struct ReadingDetailView: View {
             if let keyPhrase = hexagram.keyPhrase {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Ключевая фраза")
-                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
                         .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
                         .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
                     
@@ -265,7 +204,7 @@ struct ReadingDetailView: View {
             // Основная интерпретация
             VStack(alignment: .leading, spacing: 0) {
                 Text("Интерпретация")
-                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                    .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
                     .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
                     .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
                 
@@ -281,7 +220,7 @@ struct ReadingDetailView: View {
             if let generalStrategy = hexagram.generalStrategy {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Общая стратегия")
-                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
                         .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
                         .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
                     
@@ -298,7 +237,7 @@ struct ReadingDetailView: View {
             if let leadershipStrategy = hexagram.leadershipStrategy {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Стратегия лидера")
-                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
                         .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
                         .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
                     
@@ -315,7 +254,7 @@ struct ReadingDetailView: View {
             if let subordinateStrategy = hexagram.subordinateStrategy {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Стратегия подчиненного")
-                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
                         .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
                         .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
                     
@@ -332,7 +271,7 @@ struct ReadingDetailView: View {
             if !changingLines.isEmpty, let lineTexts = hexagram.lineTexts, !lineTexts.isEmpty {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Текст по меняющимся линиям")
-                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
                         .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
                         .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
                     
@@ -341,7 +280,7 @@ struct ReadingDetailView: View {
                         if position >= 0 && position < lineTexts.count {
                             VStack(alignment: .leading, spacing: 0) {
                                 Text("Линия \(line.position)")
-                                    .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                                    .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
                                     .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue.opacity(0.6))
                                     .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.paragraphSpacing, for: geometry, isVertical: true))
                                 
@@ -362,7 +301,7 @@ struct ReadingDetailView: View {
             if let practicalAdvice = hexagram.practicalAdvice, !practicalAdvice.isEmpty {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Практические шаги")
-                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
                         .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
                         .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
                     
@@ -388,8 +327,8 @@ struct ReadingDetailView: View {
             if let questions = hexagram.reflectionQuestions, !questions.isEmpty {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Для размышления")
-                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
-                        .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
+                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                        .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue.opacity(1.0))
                         .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
                     
                     ForEach(questions, id: \.self) { question in
@@ -408,7 +347,7 @@ struct ReadingDetailView: View {
             if let secondHexagram = secondHexagram {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Тенденция")
-                        .font(robotoMonoThinFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
+                        .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.ReadingDetailScreen.Typography.sectionLabelSize, for: geometry)))
                         .foregroundColor(DesignConstants.ReadingDetailScreen.Colors.textBlue)
                         .padding(.bottom, scaledValue(DesignConstants.ReadingDetailScreen.Spacing.sectionLabelBottom, for: geometry, isVertical: true))
                     
@@ -457,17 +396,15 @@ struct ReadingDetailView: View {
         return .system(size: size, weight: .light)
     }
     
-    /// Создает шрифт Roboto Mono Thin
-    private func robotoMonoThinFont(size: CGFloat) -> Font {
+    /// Создает шрифт Roboto Mono Light
+    private func robotoMonoLightFont(size: CGFloat) -> Font {
         let fontNames = [
-            "Roboto Mono",
-            "RobotoMono",
+            "Roboto Mono Light",
+            "RobotoMono-Light",
+            "RobotoMonoLight",
             "RobotoMono-VariableFont_wght",
-            "RobotoMono Variable",
-            "Roboto Mono Variable",
-            "Roboto Mono Thin",
-            "RobotoMono-Thin",
-            "RobotoMonoThin"
+            "Roboto Mono",
+            "RobotoMono"
         ]
         
         for fontName in fontNames {
@@ -476,7 +413,7 @@ struct ReadingDetailView: View {
             }
         }
         
-        return .system(size: size, weight: .ultraLight, design: .monospaced)
+        return .system(size: size, weight: .light, design: .monospaced)
     }
     
     /// Масштабирует значение относительно базового размера экрана

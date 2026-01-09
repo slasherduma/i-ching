@@ -19,10 +19,34 @@ struct CoinsView: View {
                 
                 // Анимация руки - абсолютное позиционирование
                 if currentThrow < totalThrows {
-                    HandAnimationView(isThrowing: isThrowing, geometry: geometry)
+                    HandAnimationView(
+                        isThrowing: isThrowing,
+                        geometry: geometry,
+                        onTap: { throwCoins() }
+                    )
                 }
                 
-                // Монеты и счетчик - отдельный фрейм, зафиксированы относительно гексаграммы
+                // Счетчик над гексограммой - отдельный overlay блок
+                if currentThrow < totalThrows {
+                    VStack {
+                        // Отступ от верха экрана до счетчика: topToMenu (133) + menuToCounter (100) = 233
+                        Spacer()
+                            .frame(height: scaledValue(DesignConstants.CoinsScreen.Spacing.topToMenu + DesignConstants.CoinsScreen.Spacing.menuToCounter, for: geometry, isVertical: true))
+                        
+                        // Счетчик "0/6" (показывает количество выполненных бросков)
+                        Text("\(currentThrow)/\(totalThrows)")
+                            .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.counterTextSize, for: geometry)))
+                            .foregroundColor(DesignConstants.CoinsScreen.Colors.counterTextColor)
+                            .lineSpacing(scaledValue(DesignConstants.CoinsScreen.Typography.counterLineHeight - DesignConstants.CoinsScreen.Typography.counterTextSize, for: geometry, isVertical: true))
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, scaledValue(DesignConstants.CoinsScreen.Spacing.counterHorizontalPadding, for: geometry))
+                        
+                        Spacer()
+                    }
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                }
+                
+                // Монеты - отдельный фрейм, зафиксированы относительно гексаграммы
                 if currentThrow < totalThrows {
                     VStack(spacing: 0) {
                         // Отступ от верха до монет: 360 (до гексаграммы) + 100 (высота гексаграммы) + 160 (от гексаграммы до монет) = 620
@@ -64,24 +88,16 @@ struct CoinsView: View {
                         }
                         .frame(maxWidth: .infinity)
                         
-                        // Отступ от кругов до счетчика
-                        Spacer()
-                            .frame(height: scaledValue(DesignConstants.CoinsScreen.Spacing.circlesToCounter, for: geometry, isVertical: true))
-                        
-                        // Счетчик "0/6" (показывает количество выполненных бросков)
-                        Text("\(currentThrow)/\(totalThrows)")
-                            .font(robotoMonoLightFont(size: scaledFontSize(DesignConstants.CoinsScreen.Typography.counterTextSize, for: geometry)))
-                            .foregroundColor(DesignConstants.CoinsScreen.Colors.counterTextColor)
-                            .lineSpacing(scaledValue(DesignConstants.CoinsScreen.Typography.counterLineHeight - DesignConstants.CoinsScreen.Typography.counterTextSize, for: geometry, isVertical: true))
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal, scaledValue(DesignConstants.CoinsScreen.Spacing.counterHorizontalPadding, for: geometry))
-                        
                         Spacer()
                     }
                     .frame(width: geometry.size.width, height: geometry.size.height)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .overlay(alignment: .top) {
+                MenuBarView(geometry: geometry, onDismiss: { navigationManager.popToRoot() })
+                    .environmentObject(navigationManager)
+            }
             .overlay(alignment: .bottom) {
                 if currentThrow < totalThrows {
                     BottomBar.primary(

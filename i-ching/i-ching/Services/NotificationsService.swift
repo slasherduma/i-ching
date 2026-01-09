@@ -200,9 +200,11 @@ class NotificationsService: NSObject, ObservableObject {
         let hour = calendar.component(.hour, from: targetTime)
         let minute = calendar.component(.minute, from: targetTime)
         
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "h:mm a"
         print("🕐 Настраиваем ежедневное уведомление на \(hour):\(String(format: "%02d", minute)) (примерно через \(minutes) минут)")
-        print("   Текущее время: \(DateFormatter.localizedString(from: now, dateStyle: .none, timeStyle: .medium))")
-        print("   Целевое время: \(DateFormatter.localizedString(from: targetTime, dateStyle: .none, timeStyle: .medium))")
+        print("   Текущее время: \(timeFormatter.string(from: now))")
+        print("   Целевое время: \(timeFormatter.string(from: targetTime))")
         
         // Устанавливаем время в настройках
         self.notificationTime = targetTime
@@ -241,9 +243,7 @@ class NotificationsService: NSObject, ObservableObject {
                         // Показываем, когда сработает следующее уведомление
                         if let nextDate = trigger.nextTriggerDate() {
                             let formatter = DateFormatter()
-                            formatter.locale = Locale(identifier: "ru_RU")
-                            formatter.dateStyle = .medium
-                            formatter.timeStyle = .short
+                            formatter.dateFormat = "dd/MM/yyyy h:mm a"
                             print("  Следующее уведомление: \(formatter.string(from: nextDate))")
                         }
                         print("---")
@@ -254,9 +254,7 @@ class NotificationsService: NSObject, ObservableObject {
                         print("  Через: \(trigger.timeInterval) секунд")
                         if let nextDate = trigger.nextTriggerDate() {
                             let formatter = DateFormatter()
-                            formatter.locale = Locale(identifier: "ru_RU")
-                            formatter.dateStyle = .medium
-                            formatter.timeStyle = .short
+                            formatter.dateFormat = "dd/MM/yyyy h:mm a"
                             print("  Сработает: \(formatter.string(from: nextDate))")
                         }
                         print("---")

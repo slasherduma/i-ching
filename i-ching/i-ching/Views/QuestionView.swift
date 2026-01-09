@@ -1,15 +1,162 @@
 import SwiftUI
+import UIKit
+
+// MARK: - Custom UITextView Wrapper for Multiline Input with Done Key
+struct MultilineTextField: UIViewRepresentable {
+    @Binding var text: String
+    @Binding var isFocused: Bool
+    var font: UIFont
+    var textColor: UIColor
+    var placeholder: String
+    
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.font = font
+        textView.textColor = textColor
+        textView.textAlignment = .center
+        textView.backgroundColor = .clear
+        textView.delegate = context.coordinator
+        textView.textContainerInset = .zero
+        textView.textContainer.lineFragmentPadding = 0
+        textView.isScrollEnabled = true
+        textView.isEditable = true
+        textView.isSelectable = true
+        textView.isUserInteractionEnabled = true
+        
+        // Disable autocorrection
+        textView.autocorrectionType = .no
+        textView.autocapitalizationType = .sentences
+        textView.smartDashesType = .no
+        textView.smartQuotesType = .no
+        textView.smartInsertDeleteType = .no
+        textView.spellCheckingType = .no
+        
+        // Set Return key as Done
+        textView.returnKeyType = .done
+        textView.enablesReturnKeyAutomatically = true
+        
+        // No accessory toolbar - only use system keyboard Done button
+        textView.inputAccessoryView = nil
+        
+        // Debug marker
+        textView.accessibilityIdentifier = "QuestionViewKeyboardTextView_USED"
+        #if DEBUG
+        print("✅ QuestionView UITextView makeUIView used")
+        #endif
+        
+        context.coordinator.textView = textView
+        return textView
+    }
+    
+    func updateUIView(_ uiView: UITextView, context: Context) {
+        // Update text only if changed externally
+        if uiView.text != text {
+            uiView.text = text
+        }
+        
+        // Update reference
+        context.coordinator.textView = uiView
+        
+        // Maintain settings
+        uiView.font = font
+        uiView.textColor = textColor
+        uiView.autocorrectionType = .no
+        uiView.autocapitalizationType = .sentences
+        uiView.smartDashesType = .no
+        uiView.smartQuotesType = .no
+        uiView.smartInsertDeleteType = .no
+        uiView.spellCheckingType = .no
+        
+        // Ensure Return key is Done
+        uiView.returnKeyType = .done
+        uiView.enablesReturnKeyAutomatically = true
+        
+        // Ensure delegate is set
+        uiView.delegate = context.coordinator
+        
+        // No accessory toolbar - only use system keyboard Done button
+        uiView.inputAccessoryView = nil
+        
+        // Manage first responder - делаем это асинхронно, чтобы избежать модификации состояния во время обновления вида
+        if isFocused && !uiView.isFirstResponder {
+            DispatchQueue.main.async {
+                uiView.becomeFirstResponder()
+            }
+        } else if !isFocused && uiView.isFirstResponder {
+            DispatchQueue.main.async {
+                uiView.resignFirstResponder()
+            }
+        }
+        
+        #if DEBUG
+        print("✅ QuestionView UITextView updateUIView used")
+        #endif
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UITextViewDelegate {
+        var parent: MultilineTextField
+        weak var textView: UITextView?
+        
+        init(_ parent: MultilineTextField) {
+            self.parent = parent
+        }
+        
+        func textViewDidBeginEditing(_ textView: UITextView) {
+            DispatchQueue.main.async {
+                if !self.parent.isFocused {
+                    self.parent.isFocused = true
+                }
+            }
+        }
+        
+        func textViewDidChange(_ textView: UITextView) {
+            DispatchQueue.main.async {
+                self.parent.text = textView.text
+            }
+        }
+        
+        func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+            // Handle Return key (Done)
+            if text == "\n" {
+                #if DEBUG
+                print("✅ Return key pressed - shouldChangeTextIn fired")
+                #endif
+                // Immediately prevent newline insertion
+                // Close keyboard after delegate returns to avoid focus bounce
+                DispatchQueue.main.async {
+                    self.parent.isFocused = false
+                    textView.resignFirstResponder()
+                }
+                return false // Prevent newline insertion
+            }
+            return true
+        }
+        
+        func textViewDidEndEditing(_ textView: UITextView) {
+            #if DEBUG
+            print("✅ textViewDidEndEditing called")
+            #endif
+            DispatchQueue.main.async {
+                self.parent.isFocused = false
+            }
+        }
+    }
+}
 
 struct QuestionView: View {
     @EnvironmentObject var navigationManager: NavigationManager
     @State private var question: String = ""
-    @FocusState private var isTextFieldFocused: Bool
-    @State private var keyboardHeight: CGFloat = 0
+    @State private var isTextFieldFocused: Bool = false
     @Environment(\.dismiss) var dismiss
     @State private var swipeProgress: CGFloat = 0
     
     var body: some View {
         GeometryReader { geometry in
+            let bottomPadding = DesignConstants.Layout.ctaSafeBottomPadding
             VStack(spacing: 0) {
                 // Отступ сверху до заголовка
                 Spacer()
@@ -38,35 +185,50 @@ struct QuestionView: View {
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 
-                // Отступ от второго параграфа до поля ввода (уменьшен на 20%)
+                // Отступ от второго параграфа до поля ввода
                 Spacer()
-                    .frame(height: scaledValue(DesignConstants.QuestionScreen.Spacing.secondParagraphToInput * 0.8, for: geometry, isVertical: true))
+                    .frame(height: scaledValue(DesignConstants.QuestionScreen.Spacing.secondParagraphToInput, for: geometry, isVertical: true))
                 
                 // Поле ввода с placeholder
                 ZStack(alignment: .center) {
-                        TextField("", text: $question, axis: .vertical)
-                            .font(helveticaNeueLightFont(size: scaledFontSize(DesignConstants.QuestionScreen.Typography.placeholderSize, for: geometry)))
-                            .foregroundColor(DesignConstants.QuestionScreen.Colors.textBlue)
-                            .focused($isTextFieldFocused)
-                            .padding(.horizontal, scaledValue(DesignConstants.QuestionScreen.Spacing.contentHorizontalPadding, for: geometry))
-                            .multilineTextAlignment(.center)
-                            .lineLimit(3...10)
-                            .textFieldStyle(.plain)
+                        MultilineTextField(
+                            text: $question,
+                            isFocused: $isTextFieldFocused,
+                            font: UIFont(name: "HelveticaNeue-Light", size: scaledFontSize(DesignConstants.QuestionScreen.Typography.placeholderSize, for: geometry)) ?? .systemFont(ofSize: scaledFontSize(DesignConstants.QuestionScreen.Typography.placeholderSize, for: geometry), weight: .light),
+                            textColor: UIColor(DesignConstants.QuestionScreen.Colors.textBlue),
+                            placeholder: "Запишите ваш вопрос здесь, чтобы потом легко найти его в дневнике..."
+                        )
+                        .frame(minHeight: 60, maxHeight: 200)
+                        .padding(.horizontal, scaledValue(DesignConstants.QuestionScreen.Spacing.contentHorizontalPadding, for: geometry))
                         
                         // Кастомный placeholder, который виден на всех устройствах
                         // Показываем placeholder когда поле пустое (даже при фокусе, чтобы пользователь понимал, что можно вводить)
-                        if question.isEmpty {
-                            Text("Запишите ваш вопрос здесь, чтобы потом легко найти его в дневнике...")
-                                .font(helveticaNeueLightFont(size: scaledFontSize(DesignConstants.QuestionScreen.Typography.placeholderSize, for: geometry)))
-                                .foregroundColor(DesignConstants.QuestionScreen.Colors.textBlue.opacity(0.6))
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, scaledValue(DesignConstants.QuestionScreen.Spacing.contentHorizontalPadding, for: geometry))
-                                .allowsHitTesting(false)
-                        }
+                        Text("Запишите ваш вопрос здесь, чтобы потом легко найти его в дневнике...")
+                            .font(helveticaNeueLightFont(size: scaledFontSize(DesignConstants.QuestionScreen.Typography.placeholderSize, for: geometry)))
+                            .foregroundColor(DesignConstants.QuestionScreen.Colors.textBlue.opacity(0.6))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, scaledValue(DesignConstants.QuestionScreen.Spacing.contentHorizontalPadding, for: geometry))
+                            .opacity(question.isEmpty ? 1 : 0)
+                            .allowsHitTesting(false)
+                            .accessibilityHidden(!question.isEmpty)
                 }
                 
                 // Гибкий отступ для выталкивания контента вверх
                 Spacer()
+            }
+            .contentShape(Rectangle())
+            .simultaneousGesture(
+                TapGesture()
+                    .onEnded { _ in
+                        // Закрываем клавиатуру при тапе по любому месту экрана
+                        if isTextFieldFocused {
+                            isTextFieldFocused = false
+                        }
+                    }
+            )
+            .overlay(alignment: .top) {
+                MenuBarView(geometry: geometry, onDismiss: { navigationManager.popToRoot() })
+                    .environmentObject(navigationManager)
             }
             .overlay(alignment: .bottom) {
                 BottomBar.dual(
@@ -83,44 +245,37 @@ struct QuestionView: View {
                     lift: DesignConstants.Layout.ctaLiftSticky,
                     geometry: geometry
                 )
-                .padding(.bottom, DesignConstants.Layout.ctaSafeBottomPadding)
+                .padding(.bottom, bottomPadding)
             }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notification in
-            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-                keyboardHeight = keyboardFrame.height
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-            keyboardHeight = 0
-        }
-        .overlay(
-            // Затемнение при свайпе
-            Color.black.opacity(swipeProgress * 0.3)
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
-        )
-        .gesture(
-            DragGesture(minimumDistance: 20)
-                .onChanged { value in
-                    // Проверяем, что свайп начинается от левого края (в пределах 30 пикселей)
-                    if value.startLocation.x < 30 && value.translation.width > 0 {
-                        // Ограничиваем прогресс от 0 до 1
-                        swipeProgress = min(1.0, value.translation.width / 200)
-                    }
-                }
-                .onEnded { value in
-                    // Если свайп достаточно длинный (больше 100 пикселей), закрываем экран
-                    if value.startLocation.x < 30 && value.translation.width > 100 {
-                        navigationManager.pop()
-                    } else {
-                        // Иначе возвращаем затемнение в исходное состояние
-                        withAnimation(.spring()) {
-                            swipeProgress = 0
+            .overlay(
+                // Затемнение при свайпе
+                Color.black.opacity(swipeProgress * 0.3)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+            )
+            .gesture(
+                DragGesture(minimumDistance: 20)
+                    .onChanged { value in
+                        // Проверяем, что свайп начинается от левого края (в пределах 30 пикселей)
+                        if value.startLocation.x < 30 && value.translation.width > 0 {
+                            // Ограничиваем прогресс от 0 до 1
+                            swipeProgress = min(1.0, value.translation.width / 200)
                         }
                     }
-                }
-        )
+                    .onEnded { value in
+                        // Если свайп достаточно длинный (больше 100 пикселей), закрываем экран
+                        if value.startLocation.x < 30 && value.translation.width > 100 {
+                            navigationManager.pop()
+                        } else {
+                            // Иначе возвращаем затемнение в исходное состояние
+                            withAnimation(.spring()) {
+                                swipeProgress = 0
+                            }
+                        }
+                    }
+            )
+        }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
     
     // MARK: - Helper Functions
@@ -241,6 +396,9 @@ struct QuestionView: View {
         // Fallback на системный шрифт
         return .system(size: size, weight: .light)
     }
+
+
+    
     
     /// Масштабирует значение относительно базового размера экрана
     /// Использует фиксированные размеры экрана, чтобы размеры не менялись при появлении клавиатуры
@@ -292,4 +450,3 @@ struct QuestionView: View {
         return size * scaleFactor
     }
 }
-

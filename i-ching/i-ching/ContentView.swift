@@ -17,26 +17,24 @@ struct ContentView: View {
                     if navigationManager.screens.isEmpty {
                         StartView()
                             .transition(.opacity)
-                    } else if let currentScreen = navigationManager.currentScreen {
-                        // Текущий экран из стека
+                            .zIndex(0)
+                    }
+                    
+                    // Текущий экран из стека
+                    if let currentScreen = navigationManager.currentScreen {
                         currentScreen.view
                             .transition(.opacity)
+                            .zIndex(1)
                     }
                 }
                 .animation(.easeInOut(duration: 0.2), value: navigationManager.screens.count)
                 
-                // MenuBarView поверх навигации (только когда не на StartView)
-                if !navigationManager.screens.isEmpty {
-                    MenuBarView(geometry: geometry)
-                        .environmentObject(navigationManager)
-                }
-                
-                // Гексограмма overlay - отображается только на экранах CoinsView и HexagramView
+                // Гексограмма overlay - отображается только на экранах CoinsView, HexagramView и ResultView
                 // Это гарантирует, что гексограмма не пересоздается при переходе между экранами
                 if !navigationManager.currentHexagramLines.isEmpty,
                    let currentScreen = navigationManager.currentScreen {
                     switch currentScreen {
-                    case .coins, .hexagram:
+                    case .coins, .hexagram, .result:
                         HexagramOverlay(lines: navigationManager.currentHexagramLines, geometry: geometry)
                     default:
                         EmptyView()
