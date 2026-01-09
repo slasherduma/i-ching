@@ -23,6 +23,14 @@ class ButtonSoundService {
     }
     
     func playRandomSound() {
+        // Тактильная обратная связь (такая же, как у кнопки "БРОСИТЬ МОНЕТЫ")
+        // Вибрация работает всегда, независимо от настройки звука
+        HapticManager.shared.triggerCoinsReleasedHaptic()
+        
+        // Проверяем, включен ли звук (фоновая музыка)
+        // Если звук выключен, не воспроизводим звуки bell
+        guard BackgroundMusicService.shared.isPlaying else { return }
+        
         // Выбираем случайный звук
         guard let soundName = soundNames.randomElement() else { return }
         

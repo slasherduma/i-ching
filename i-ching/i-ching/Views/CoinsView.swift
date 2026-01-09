@@ -117,6 +117,8 @@ struct CoinsView: View {
         guard !isThrowing else { return }
         isThrowing = true
         
+        // Вибрация теперь централизованно добавлена в ButtonSoundService через BottomBar.primary
+        
         // Анимация броска
         withAnimation(.easeOut(duration: 0.3)) {
             coins = [false, false, false]
